@@ -1058,112 +1058,101 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     </div>
                 )}
 
-                <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileSelect}
-                        style={{ display: 'none' }}
-                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip"
-                    />
-
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
-                        style={{
-                            padding: '0.75rem',
-                            background: 'var(--zorah-surface)',
-                            border: '1px solid var(--zorah-border)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--text-primary)',
-                            cursor: uploading ? 'not-allowed' : 'pointer',
-                            fontSize: '1.2rem',
-                            transition: 'all 0.2s',
-                            opacity: uploading ? 0.5 : 1
-                        }}
-                        onMouseEnter={e => !uploading && (e.currentTarget.style.background = 'var(--zorah-surface-hover)')}
-                        onMouseLeave={e => e.currentTarget.style.background = 'var(--zorah-surface)'}
-                    >
-                        {uploading ? '⏳' : '📎'}
-                    </button>
-
-                    <div style={{ position: 'relative', flex: 1 }}>
+                <form onSubmit={handleSend} className="chat-input-container">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <input
-                            ref={messageInputRef}
-                            className="chat-input"
-                            value={newMessage}
-                            onChange={e => {
-                                const value = e.target.value;
-                                setNewMessage(value);
-                                handleTyping();
-                                // Handle mention detection (only in channels, not DMs)
-                                if (!isDM && channelId) {
-                                    handleMentionInput(value, e.target);
-                                }
-                            }}
-                            onKeyDown={(e) => {
-                                // If mention autocomplete is open, let it handle keyboard
-                                if (mentionState && !isDM && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Tab')) {
-                                    e.preventDefault();
-                                    // MentionAutocomplete will handle this via window event
-                                    return;
-                                }
-
-                                if (e.key === 'Escape' && mentionState) {
-                                    setMentionState(null);
-                                    return;
-                                }
-
-                                // Normal Enter to send
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    // Will be handled by form submit
-                                }
-                            }}
-                            onClick={(e) => {
-                                // Update mention position on click
-                                if (mentionState && !isDM) {
-                                    const value = e.target.value;
-                                    handleMentionInput(value, e.target);
-                                }
-                            }}
-                            placeholder={isDM ? `Mensagem para ${dmUser?.name}` : `Enviar mensagem em #${channelName || channelId}`}
-                            style={{ flex: 1, width: '100%' }}
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileSelect}
+                            style={{ display: 'none' }}
+                            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip"
                         />
 
-                        {/* Mention Autocomplete - only show in channels, not DMs */}
-                        {mentionState && !isDM && channelId && (
-                            <MentionAutocomplete
-                                query={mentionState.query}
-                                users={channelMembers}
-                                onSelect={(username, type, userId) => {
-                                    handleMentionSelect(username, type, userId, mentionState.startIndex);
-                                }}
-                                onClose={() => setMentionState(null)}
-                                position={mentionState.position}
-                                workspaceId={workspaceId}
-                                channelId={channelId}
-                            />
-                        )}
-                    </div>
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            className="attach-button"
+                            style={{
+                                padding: '8px',
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'var(--text-tertiary)',
+                                cursor: 'pointer',
+                                fontSize: '1.2rem',
+                                transition: 'color 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                        >
+                            {uploading ? '⏳' : '📎'}
+                        </button>
 
-                    <button
-                        type="submit"
-                        disabled={!newMessage.trim() && !uploadedFile}
-                        style={{
-                            padding: '0.75rem 1.5rem',
-                            background: (!newMessage.trim() && !uploadedFile) ? 'var(--zorah-surface)' : 'var(--zorah-primary)',
-                            border: 'none',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'white',
-                            cursor: (!newMessage.trim() && !uploadedFile) ? 'not-allowed' : 'pointer',
-                            fontWeight: '600',
-                            transition: 'all 0.2s',
-                            opacity: (!newMessage.trim() && !uploadedFile) ? 0.5 : 1
-                        }}
-                    >
-                        Enviar
-                    </button>
+                        <div style={{ position: 'relative', flex: 1 }}>
+                            <input
+                                ref={messageInputRef}
+                                className="chat-input"
+                                value={newMessage}
+                                onChange={e => {
+                                    const value = e.target.value;
+                                    setNewMessage(value);
+                                    handleTyping();
+                                    if (!isDM && channelId) {
+                                        handleMentionInput(value, e.target);
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (mentionState && !isDM && ['ArrowDown', 'ArrowUp', 'Enter', 'Tab'].includes(e.key)) {
+                                        e.preventDefault();
+                                        return;
+                                    }
+                                    if (e.key === 'Escape' && mentionState) {
+                                        setMentionState(null);
+                                        return;
+                                    }
+                                }}
+                                onClick={(e) => {
+                                    if (mentionState && !isDM) {
+                                        handleMentionInput(e.target.value, e.target);
+                                    }
+                                }}
+                                placeholder={isDM ? `Mensagem para ${dmUser?.name}` : `Enviar mensagem em #${channelName || channelId}`}
+                                style={{ width: '100%' }}
+                            />
+
+                            {/* Mention Autocomplete - only in channels */}
+                            {mentionState && !isDM && channelId && (
+                                <MentionAutocomplete
+                                    query={mentionState.query}
+                                    users={channelMembers}
+                                    onSelect={(username, type, userId) => {
+                                        handleMentionSelect(username, type, userId, mentionState.startIndex);
+                                    }}
+                                    onClose={() => setMentionState(null)}
+                                    position={mentionState.position}
+                                    workspaceId={workspaceId}
+                                    channelId={channelId}
+                                />
+                            )}
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="send-button"
+                            style={{
+                                padding: '8px 16px',
+                                background: 'var(--primary-gradient, #6366f1)',
+                                border: 'none',
+                                borderRadius: '6px',
+                                color: 'white',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem'
+                            }}
+                        >
+                            Enviar
+                        </button>
+                    </div>
                 </form>
             </div>
 
