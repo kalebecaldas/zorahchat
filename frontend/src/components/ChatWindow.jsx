@@ -27,6 +27,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
     const { user } = useAuth();
     const { socket, connected } = useSocket();
     const [connectionDebug, setConnectionDebug] = useState('');
+    const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
     const isDM = !!dmId;
 
@@ -239,6 +240,14 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
             setTypingUser(null);
         });
 
+        // Listen for status changes to update DM user status in real-time
+        socket.on('user-status-change', ({ userId, status }) => {
+            if (isDM && dmUser && dmUser.id === userId) {
+                console.log('[CHAT] Updating DM user status:', { userId, status });
+                setDmUser(prev => prev ? { ...prev, status } : null);
+            }
+        });
+
         // Listen for edited messages
         socket.on('message-edited', (updatedMessage) => {
             setMessages(prev => prev.map(msg =>
@@ -287,6 +296,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
     const fetchMessages = async () => {
         const token = localStorage.getItem('token');
+        setIsLoadingMessages(true);
 
         try {
             if (isDM) {
@@ -328,18 +338,19 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     setMessages(data);
                 }
 
-                // Fetch channel info to get the name
-                const chRes = await fetch(`/api/channels/${workspaceId}`, {
+                // Fetch channel info using optimized endpoint
+                const chRes = await fetch(`/api/channels/${workspaceId}/channel/${channelId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (chRes.ok) {
-                    const channels = await chRes.json();
-                    const current = channels.find(c => c.id == channelId);
-                    if (current) setChannelName(current.name);
+                    const channel = await chRes.json();
+                    setChannelName(channel.name);
                 }
             }
         } catch (error) {
             console.error('[CHAT] Error fetching messages:', error);
+        } finally {
+            setIsLoadingMessages(false);
         }
     };
 

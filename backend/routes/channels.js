@@ -4,6 +4,45 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
+// Get specific channel info (optimized for quick lookups)
+router.get('/:workspaceId/channel/:channelId', authMiddleware, async (req, res) => {
+    const { workspaceId, channelId } = req.params;
+    const db = getDb();
+
+    try {
+        // Verify user is member of workspace
+        const membership = await db.get(
+            'SELECT * FROM workspace_users WHERE workspace_id = ? AND user_id = ?',
+            [workspaceId, req.userId]
+        );
+
+        if (!membership) {
+            return res.status(403).json({ error: 'Not a member of this workspace' });
+        }
+
+        // Get channel info
+        const channel = await db.get(`
+            SELECT c.*, COUNT(cm.user_id) as member_count
+            FROM channels c
+            LEFT JOIN channel_members cm ON c.id = cm.channel_id
+            WHERE c.id = ? AND c.workspace_id = ?
+              AND (c.is_private = 0 OR EXISTS (
+                  SELECT 1 FROM channel_members cm2 
+                  WHERE cm2.channel_id = c.id AND cm2.user_id = ?
+              ))
+            GROUP BY c.id
+        `, [channelId, workspaceId, req.userId]);
+
+        if (!channel) {
+            return res.status(404).json({ error: 'Channel not found or access denied' });
+        }
+
+        res.json(channel);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Get channels for a workspace
 router.get('/:workspaceId', authMiddleware, async (req, res) => {
     const { workspaceId } = req.params;
