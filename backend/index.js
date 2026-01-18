@@ -61,7 +61,15 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Initialize Database
-initializeDatabase().catch(err => {
+initializeDatabase().then(async () => {
+    try {
+        const db = getDb();
+        await db.run("UPDATE users SET status = 'offline'");
+        console.log('[DATABASE] All user statuses reset to offline on startup');
+    } catch (err) {
+        console.error('[DATABASE] Failed to reset user statuses:', err);
+    }
+}).catch(err => {
     console.error('Failed to initialize database:', err);
     process.exit(1);
 });
