@@ -15,28 +15,20 @@ export function SocketProvider({ children }) {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        // SIMPLIFIED: Always use the same hostname as the current page
-        // This ensures if accessing via IP, socket uses IP too
-        // If accessing via localhost, socket uses localhost
-        const protocol = window.location.protocol;
-        const currentHostname = window.location.hostname;
-        const currentPort = window.location.port;
-        const currentHref = window.location.href;
-        
-        // ALWAYS use the same hostname as the page URL
-        // This is the most reliable way to ensure socket connects to the right server
-        const wsUrl = `${protocol}//${currentHostname}:3001`;
-        
+        // Use environment variable for WebSocket URL
+        // In production (Railway), this will be the backend domain
+        // In development, fallback to localhost:3001
+        const wsUrl = import.meta.env.VITE_WS_URL || `${window.location.protocol}//${window.location.hostname}:3001`;
+
         // Log detailed info for debugging
         const debugInfo = {
-            windowLocation: currentHref,
-            windowHostname: currentHostname,
-            windowPort: currentPort,
+            windowLocation: window.location.href,
+            windowHostname: window.location.hostname,
+            envWsUrl: import.meta.env.VITE_WS_URL,
             finalWsUrl: wsUrl,
-            isLocalhost: currentHostname === 'localhost' || currentHostname === '127.0.0.1',
-            isIPAddress: /^\d+\.\d+\.\d+\.\d+$/.test(currentHostname)
+            isProduction: !!import.meta.env.VITE_WS_URL
         };
-        
+
         console.log('[SOCKET CONTEXT] Socket URL resolution:', debugInfo);
         console.log('[SOCKET CONTEXT] Connecting to:', wsUrl);
 
@@ -76,12 +68,12 @@ export function SocketProvider({ children }) {
                 description: error.description,
                 url: wsUrl
             });
-            
+
             // If authentication error, try to refresh token
             if (error.message.includes('Authentication')) {
                 console.error('[SOCKET CONTEXT] Authentication failed - check token');
                 const currentToken = localStorage.getItem('token');
-                
+
                 // Try reconnecting with fresh auth after a delay
                 setTimeout(() => {
                     if (currentToken) {
