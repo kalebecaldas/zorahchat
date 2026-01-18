@@ -24,6 +24,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
     const fileInputRef = useRef(null);
     const messageInputRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+    const channelCacheRef = useRef({}); // Cache para nomes de canais: { channelId: name }
+    const dmCacheRef = useRef({}); // Cache para info de DMs: { dmId: { name, avatar, status } }
     const { user } = useAuth();
     const { socket, connected } = useSocket();
     const [connectionDebug, setConnectionDebug] = useState('');
@@ -38,8 +40,19 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         console.log('[SOCKET] Setting up room and listeners for:', { channelId, dmId });
 
         setMessages([]); // Clear stale messages
-        setChannelName(''); // Reset channel name
-        setDmUser(null); // Reset DM user
+
+        // Load from cache immediately for instant display
+        if (!isDM && channelId && channelCacheRef.current[channelId]) {
+            setChannelName(channelCacheRef.current[channelId]);
+        } else {
+            setChannelName(''); // Reset channel name
+        }
+
+        if (isDM && dmId && dmCacheRef.current[dmId]) {
+            setDmUser(dmCacheRef.current[dmId]);
+        } else {
+            setDmUser(null); // Reset DM user
+        }
 
         // Helper function to mark channel/DM as read
         const markAsRead = async () => {
@@ -319,11 +332,14 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     const dms = await dmInfoRes.json();
                     const currentDm = dms.find(d => d.id == dmId);
                     if (currentDm) {
-                        setDmUser({
+                        const dmUserData = {
                             name: currentDm.other_user_name,
                             avatar: currentDm.other_user_avatar,
                             status: currentDm.other_user_status
-                        });
+                        };
+                        setDmUser(dmUserData);
+                        // Save to cache for instant display next time
+                        dmCacheRef.current[dmId] = dmUserData;
                     }
                 }
             } else {
@@ -345,6 +361,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                 if (chRes.ok) {
                     const channel = await chRes.json();
                     setChannelName(channel.name);
+                    // Save to cache for instant display next time
+                    channelCacheRef.current[channelId] = channel.name;
                 }
             }
         } catch (error) {
