@@ -37,6 +37,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         console.log('[SOCKET] Setting up room and listeners for:', { channelId, dmId });
 
         setMessages([]); // Clear stale messages
+        setChannelName(''); // Reset channel name
+        setDmUser(null); // Reset DM user
 
         // Helper function to mark channel/DM as read
         const markAsRead = async () => {
@@ -326,16 +328,14 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     setMessages(data);
                 }
 
-                // Only fetch channel info if we don't have the name yet
-                if (!channelName) {
-                    const chRes = await fetch(`/api/channels/${workspaceId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (chRes.ok) {
-                        const channels = await chRes.json();
-                        const current = channels.find(c => c.id == channelId);
-                        if (current) setChannelName(current.name);
-                    }
+                // Fetch channel info to get the name
+                const chRes = await fetch(`/api/channels/${workspaceId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (chRes.ok) {
+                    const channels = await chRes.json();
+                    const current = channels.find(c => c.id == channelId);
+                    if (current) setChannelName(current.name);
                 }
             }
         } catch (error) {
