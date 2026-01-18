@@ -812,10 +812,10 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                                 position: 'absolute',
                                 bottom: '-2px',
                                 right: '-2px',
-                                width: '8px',
-                                height: '8px',
+                                width: '10px',
+                                height: '10px',
                                 borderRadius: '50%',
-                                background: getStatusColor(dm.other_user_status),
+                                background: getStatusColor(dm.other_user_status || 'offline'),
                                 border: '2px solid var(--zorah-surface)'
                             }} />
                         </div>
