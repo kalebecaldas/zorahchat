@@ -843,7 +843,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                 ) : (
                     <>
                         <span style={{ fontSize: '1.2rem', color: 'var(--text-tertiary)', marginRight: '6px' }}>#</span>
-                        <span style={{ fontWeight: '600', fontSize: '1rem' }}>{channelName || `Canal ${channelId}`}</span>
+                        <span style={{ fontWeight: '600', fontSize: '1rem' }}>{channelName || '...'}</span>
                     </>
                 )}
             </div>
