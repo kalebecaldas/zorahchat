@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
         const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1d' });
 
         res.status(201).json({
-            user: { id: userId, name, email },
+            user: { id: userId, name, email, status: 'online' },
             token
         });
 
@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1d' });
 
         res.json({
-            user: { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url },
+            user: { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url, status: user.status, status_message: user.status_message },
             token
         });
     } catch (error) {
@@ -83,7 +83,7 @@ router.get('/me', async (req, res) => {
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         const db = getDb();
-        const user = await db.get('SELECT id, name, email, avatar_url FROM users WHERE id = ?', decoded.userId);
+        const user = await db.get('SELECT id, name, email, avatar_url, status, status_message FROM users WHERE id = ?', decoded.userId);
 
         if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -105,7 +105,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
             [name, avatar_url, req.userId]
         );
 
-        const user = await db.get('SELECT id, name, email, avatar_url FROM users WHERE id = ?', req.userId);
+        const user = await db.get('SELECT id, name, email, avatar_url, status, status_message FROM users WHERE id = ?', req.userId);
         res.json(user);
     } catch (error) {
         console.error('Update Profile Error:', error);
