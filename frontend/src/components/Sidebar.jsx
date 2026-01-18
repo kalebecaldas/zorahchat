@@ -16,7 +16,7 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
     const [showPendingRequests, setShowPendingRequests] = useState(false);
     const [pendingRequests, setPendingRequests] = useState([]);
     const [newChannelName, setNewChannelName] = useState('');
-    const [userStatus, setUserStatus] = useState('online');
+    const [userStatus, setUserStatus] = useState(user?.status || 'online');
     const [showStatusMenu, setShowStatusMenu] = useState(false);
     const [unreadCounts, setUnreadCounts] = useState({});
     const [selectedChannel, setSelectedChannel] = useState(null);
@@ -27,7 +27,10 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
 
     useEffect(() => {
         fetchAllWorkspaces();
-    }, []);
+        if (user?.status) {
+            setUserStatus(user.status);
+        }
+    }, [user]);
 
     useEffect(() => {
         if (workspaceId) {
@@ -217,6 +220,16 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                 );
                 console.log('[SIDEBAR] Updated members status:', updated.map(m => ({ id: m.id, name: m.name, status: m.status })));
                 return updated;
+            });
+
+            // Also update DMs list status
+            setDms(prev => {
+                return prev.map(dm => {
+                    if (dm.other_user_id === userId) {
+                        return { ...dm, other_user_status: status };
+                    }
+                    return dm;
+                });
             });
         });
 
@@ -516,19 +529,19 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                     <div
                         key={channel.id}
                         className={`channel-item ${currentChannelId == channel.id ? 'active' : ''}`}
-                        style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
                             justifyContent: 'space-between',
                             position: 'relative'
                         }}
                     >
                         <Link
                             to={`/client/${workspaceId}/${channel.id}`}
-                            style={{ 
+                            style={{
                                 flex: 1,
-                                display: 'flex', 
-                                alignItems: 'center', 
+                                display: 'flex',
+                                alignItems: 'center',
                                 justifyContent: 'space-between',
                                 textDecoration: 'none',
                                 color: 'inherit'
@@ -937,7 +950,7 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                     </div>
                 )}
             </div>
-            
+
             {/* Channel Settings Modal */}
             {showChannelSettings && selectedChannel && (
                 <ChannelSettingsModal
@@ -948,7 +961,7 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                         setSelectedChannel(null);
                     }}
                     onUpdate={(updatedChannel) => {
-                        setChannels(prev => prev.map(c => 
+                        setChannels(prev => prev.map(c =>
                             c.id === updatedChannel.id ? updatedChannel : c
                         ));
                     }}
