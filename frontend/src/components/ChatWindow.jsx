@@ -37,7 +37,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         console.log('[SOCKET] Setting up room and listeners for:', { channelId, dmId });
 
         setMessages([]); // Clear stale messages
-        
+
         // Helper function to mark channel/DM as read
         const markAsRead = async () => {
             console.log('[CHAT] markAsRead called:', { channelId, dmId });
@@ -46,7 +46,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                 console.error('[CHAT] No token available for markAsRead');
                 return;
             }
-            
+
             if (channelId) {
                 try {
                     console.log(`[CHAT] Marking channel ${channelId} as read...`);
@@ -95,12 +95,12 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         // Fetch messages
         console.log('[CHAT] Fetching messages for:', { channelId, dmId });
         fetchMessages();
-        
+
         // Fetch channel members for mentions (only for channels, not DMs)
         if (channelId && !dmId) {
             fetchChannelMembers();
         }
-        
+
         // Mark as read after messages are loaded
         console.log('[CHAT] Will mark as read after 500ms');
         setTimeout(() => {
@@ -164,12 +164,12 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     return prev;
                 }
                 console.log('[SOCKET] ✓ Adding message to state', { messageId: message.id, totalMessages: prev.length + 1 });
-                
+
                 // Mark as read when new message arrives (user is viewing this channel/DM)
                 setTimeout(() => {
                     markAsRead();
                 }, 100);
-                
+
                 return [...prev, message];
             });
             scrollToBottom();
@@ -285,40 +285,61 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
     const fetchMessages = async () => {
         const token = localStorage.getItem('token');
-        const endpoint = isDM ? `/api/dm/${dmId}/messages` : `/api/messages/${channelId}`;
 
-        const res = await fetch(endpoint, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-            const data = await res.json();
-            setMessages(data);
-        }
+        try {
+            if (isDM) {
+                // For DMs, fetch messages and DM info in parallel
+                const [messagesRes, dmInfoRes] = await Promise.all([
+                    fetch(`/api/dm/${dmId}/messages`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch(`/api/dm/${workspaceId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
 
-        if (!isDM) {
-            const chRes = await fetch(`/api/channels/${workspaceId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (chRes.ok) {
-                const channels = await chRes.json();
-                const current = channels.find(c => c.id == channelId);
-                if (current) setChannelName(current.name);
-            }
-        } else {
-            const dmRes = await fetch(`/api/dm/${workspaceId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (dmRes.ok) {
-                const dms = await dmRes.json();
-                const currentDm = dms.find(d => d.id == dmId);
-                if (currentDm) {
-                    setDmUser({
-                        name: currentDm.other_user_name,
-                        avatar: currentDm.other_user_avatar,
-                        status: currentDm.other_user_status
+                if (messagesRes.ok) {
+                    const data = await messagesRes.json();
+                    setMessages(data);
+                }
+
+                if (dmInfoRes.ok) {
+                    const dms = await dmInfoRes.json();
+                    const currentDm = dms.find(d => d.id == dmId);
+                    if (currentDm) {
+                        setDmUser({
+                            name: currentDm.other_user_name,
+                            avatar: currentDm.other_user_avatar,
+                            status: currentDm.other_user_status
+                        });
+                    }
+                }
+            } else {
+                // For channels, just fetch messages
+                // Channel name will be set from Sidebar props or route
+                const messagesRes = await fetch(`/api/messages/${channelId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (messagesRes.ok) {
+                    const data = await messagesRes.json();
+                    setMessages(data);
+                }
+
+                // Only fetch channel info if we don't have the name yet
+                if (!channelName) {
+                    const chRes = await fetch(`/api/channels/${workspaceId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
                     });
+                    if (chRes.ok) {
+                        const channels = await chRes.json();
+                        const current = channels.find(c => c.id == channelId);
+                        if (current) setChannelName(current.name);
+                    }
                 }
             }
+        } catch (error) {
+            console.error('[CHAT] Error fetching messages:', error);
         }
     };
 
@@ -594,7 +615,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                 // Check if it's a PDF or other previewable file
                 const ext = msg.attachment_name?.split('.').pop()?.toLowerCase();
                 const isPdf = ext === 'pdf' || msg.attachment_type === 'application' && ext === 'pdf';
-                
+
                 return (
                     <div
                         onClick={isPdf ? handleFileClick : undefined}
@@ -621,8 +642,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     >
                         <span style={{ fontSize: '1.5rem' }}>{getFileIcon()}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ 
-                                fontSize: '0.875rem', 
+                            <div style={{
+                                fontSize: '0.875rem',
                                 fontWeight: '500',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
@@ -673,10 +694,10 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
     const handleMentionInput = (value, inputElement) => {
         const cursorPosition = inputElement.selectionStart;
         const textBeforeCursor = value.substring(0, cursorPosition);
-        
+
         // Find last @ before cursor
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-        
+
         if (lastAtIndex !== -1) {
             // Check if there's a space after @ (if so, don't show autocomplete)
             const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
@@ -684,17 +705,17 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                 setMentionState(null);
                 return;
             }
-            
+
             // Get query (text after @)
             const query = textAfterAt.trim();
-            
+
             // Calculate position for autocomplete (above input)
             const rect = inputElement.getBoundingClientRect();
             const position = {
                 left: 0,
                 bottom: 'calc(100% + 8px)'
             };
-            
+
             setMentionState({
                 query,
                 position,
@@ -710,12 +731,12 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         const currentValue = newMessage;
         const textBefore = currentValue.substring(0, startIndex);
         const textAfter = currentValue.substring(startIndex);
-        
+
         // Find where the @mention ends (space or end of string)
         const mentionEnd = textAfter.search(/[\s\n]/);
         const mentionEndIndex = mentionEnd === -1 ? textAfter.length : mentionEnd + 1;
         const textAfterMention = textAfter.substring(mentionEndIndex);
-        
+
         // Build new message with mention
         let mentionText = '';
         if (type === 'channel' || type === 'here') {
@@ -723,11 +744,11 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         } else {
             mentionText = `@${username}`;
         }
-        
+
         const newValue = textBefore + mentionText + ' ' + textAfterMention;
         setNewMessage(newValue);
         setMentionState(null);
-        
+
         // Focus input and set cursor position after mention
         if (messageInputRef.current) {
             const newCursorPos = (textBefore + mentionText + ' ').length;
@@ -1059,12 +1080,12 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                                     // MentionAutocomplete will handle this via window event
                                     return;
                                 }
-                                
+
                                 if (e.key === 'Escape' && mentionState) {
                                     setMentionState(null);
                                     return;
                                 }
-                                
+
                                 // Normal Enter to send
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     // Will be handled by form submit
@@ -1080,7 +1101,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                             placeholder={isDM ? `Mensagem para ${dmUser?.name}` : `Enviar mensagem em #${channelName || channelId}`}
                             style={{ flex: 1, width: '100%' }}
                         />
-                        
+
                         {/* Mention Autocomplete - only show in channels, not DMs */}
                         {mentionState && !isDM && channelId && (
                             <MentionAutocomplete
@@ -1116,7 +1137,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     </button>
                 </form>
             </div>
-            
+
             {/* File Modal */}
             {selectedFile && (
                 <FileModal
