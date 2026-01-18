@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import FileModal from './FileModal';
 import MentionAutocomplete from './MentionAutocomplete';
-import '../chat-professional.css';
+import '../chat-premium.css';
 
 const EMOJI_PICKER = ['👍', '❤️', '😂', '😮', '😢', '🎉', '🚀', '👀'];
 
