@@ -16,7 +16,6 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
     const [showPendingRequests, setShowPendingRequests] = useState(false);
     const [pendingRequests, setPendingRequests] = useState([]);
     const [newChannelName, setNewChannelName] = useState('');
-    const [userStatus, setUserStatus] = useState(user?.status || 'online');
     const [showStatusMenu, setShowStatusMenu] = useState(false);
     const [unreadCounts, setUnreadCounts] = useState({});
     const [selectedChannel, setSelectedChannel] = useState(null);
@@ -24,6 +23,7 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
     const { user } = useAuth();
     const { socket } = useSocket();
     const navigate = useNavigate();
+    const [userStatus, setUserStatus] = useState(user?.status || 'online');
 
     useEffect(() => {
         fetchAllWorkspaces();
