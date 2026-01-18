@@ -5,7 +5,7 @@ const { getDb } = require('../database');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
-const JWT_SECRET = 'supersecretkey_change_in_production';
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey_change_in_production';
 
 // Simple user registration
 router.post('/register', async (req, res) => {
