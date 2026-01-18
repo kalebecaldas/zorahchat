@@ -1,8 +1,18 @@
 const sqlite3 = require('sqlite3').verbose();
 const { open } = require('sqlite');
 const path = require('path');
+const fs = require('fs');
 
-const dbPath = path.resolve(__dirname, 'database.sqlite');
+// Use /app/data em produção (Railway), __dirname em desenvolvimento
+const dataDir = process.env.NODE_ENV === 'production' ? '/app/data' : __dirname;
+
+// Criar diretório se não existir
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const dbPath = path.join(dataDir, 'database.sqlite');
+console.log(`[DATABASE] Using database at: ${dbPath}`);
 
 let db;
 
