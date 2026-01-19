@@ -159,10 +159,10 @@ router.post('/:dmId/messages', authMiddleware, async (req, res) => {
         const notification = await NotificationService.notifyDM(
             recipientId,
             req.userId,
-            message.user_name,
+            newMessage.user_name,
             content ? content.substring(0, 100) : '📎 Arquivo enviado',
             dmId,
-            message.id,
+            newMessage.id,
             dm.workspace_id
         );
 
@@ -183,9 +183,9 @@ router.post('/:dmId/messages', authMiddleware, async (req, res) => {
             }));
 
             console.log(`[DM] Broadcasting new-message to dm-${dmId}:`, {
-                messageId: message.id,
-                content: message.content?.substring(0, 50),
-                senderId: message.user_id,
+                messageId: newMessage.id,
+                content: newMessage.content?.substring(0, 50),
+                senderId: newMessage.user_id,
                 recipientId: recipientId,
                 senderConnected: !!senderSocket,
                 recipientConnected: !!recipientSocket,
@@ -200,21 +200,21 @@ router.post('/:dmId/messages', authMiddleware, async (req, res) => {
 
             // Send directly to sender
             if (senderSocket) {
-                senderSocket.emit('new-message', message);
+                senderSocket.emit('new-message', newMessage);
             }
 
             // Send directly to recipient
             if (recipientSocket) {
-                recipientSocket.emit('new-message', message);
+                recipientSocket.emit('new-message', newMessage);
                 recipientSocket.emit('new-notification', notification);
             }
 
             // Also emit to rooms as backup
-            io.to(`dm-${dmId}`).emit('new-message', message);
+            io.to(`dm-${dmId}`).emit('new-message', newMessage);
             io.to(`user-${recipientId}`).emit('new-notification', notification);
         }
 
-        res.status(201).json(message);
+        res.status(201).json(newMessage);
     } catch (error) {
         console.error('Send DM Error:', error);
         res.status(500).json({ error: error.message });

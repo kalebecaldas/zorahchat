@@ -294,7 +294,20 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
 
         if (res.ok) {
             const dm = await res.json();
-            navigate(`/client/${workspaceId}/dm/${dm.id}`);
+
+            // Find the member to get their info for instant display
+            const member = members.find(m => m.id === memberId);
+
+            // Navigate with state to avoid reload
+            navigate(`/client/${workspaceId}/dm/${dm.id}`, {
+                state: {
+                    dmInfo: {
+                        name: dm.otherUser?.name || member?.name,
+                        avatar: dm.otherUser?.avatar_url || member?.avatar_url,
+                        status: dm.otherUser?.status || member?.status || 'online'
+                    }
+                }
+            });
             fetchDMs();
         }
         setShowMembers(false);
