@@ -52,7 +52,7 @@ router.post('/login', async (req, res) => {
     const db = getDb();
 
     try {
-        const user = await db.get('SELECT * FROM users WHERE email = ?', email);
+        const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -83,7 +83,7 @@ router.get('/me', async (req, res) => {
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         const db = getDb();
-        const user = await db.get('SELECT id, name, email, avatar_url, status, status_message FROM users WHERE id = ?', decoded.userId);
+        const user = await db.get('SELECT id, name, email, avatar_url, status, status_message FROM users WHERE id = ?', [decoded.userId]);
 
         if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -105,7 +105,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
             [name, avatar_url, req.userId]
         );
 
-        const user = await db.get('SELECT id, name, email, avatar_url, status, status_message FROM users WHERE id = ?', req.userId);
+        const user = await db.get('SELECT id, name, email, avatar_url, status, status_message FROM users WHERE id = ?', [req.userId]);
         res.json(user);
     } catch (error) {
         console.error('Update Profile Error:', error);
@@ -119,7 +119,7 @@ router.put('/password', authMiddleware, async (req, res) => {
     const db = getDb();
 
     try {
-        const user = await db.get('SELECT * FROM users WHERE id = ?', req.userId);
+        const user = await db.get('SELECT * FROM users WHERE id = ?', [req.userId]);
         const validPassword = await bcrypt.compare(currentPassword, user.password);
 
         if (!validPassword) {
