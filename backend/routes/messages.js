@@ -109,7 +109,7 @@ router.post('/', authMiddleware, async (req, res) => {
         );
 
         const message = await db.get(`
-            SELECT m.*, u.name as user_name, u.username, u.avatar_url 
+            SELECT m.*, u.name as user_name, u.avatar_url 
             FROM messages m
             JOIN users u ON m.user_id = u.id
             WHERE m.id = ?

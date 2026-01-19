@@ -37,7 +37,7 @@ class MentionService {
 
         // Check for special mentions
         const hasChannel = usernames.includes('channel') || usernames.includes('here');
-        
+
         if (hasChannel && channelId) {
             // Get all members of the channel
             const channelMembers = await db.all(`
@@ -45,9 +45,9 @@ class MentionService {
                 FROM channel_members cm
                 WHERE cm.channel_id = ?
             `, [channelId]);
-            
+
             const channelUserIds = channelMembers.map(m => m.user_id);
-            
+
             if (usernames.includes('here')) {
                 // @here means online users in channel (we'll use all members for now)
                 // Could be enhanced to check socket connections
@@ -60,15 +60,15 @@ class MentionService {
 
         // Get regular user mentions (exclude special mentions)
         const regularUsernames = usernames.filter(u => u !== 'channel' && u !== 'here');
-        
+
         if (regularUsernames.length > 0) {
             const placeholders = regularUsernames.map(() => '?').join(',');
 
             const query = `
-                SELECT DISTINCT u.id, u.username
+                SELECT DISTINCT u.id, u.name as username
                 FROM users u
                 INNER JOIN workspace_users wu ON u.id = wu.user_id
-                WHERE wu.workspace_id = ? AND u.username IN (${placeholders})
+                WHERE wu.workspace_id = ? AND u.name IN (${placeholders})
             `;
 
             const users = await db.all(query, [workspaceId, ...regularUsernames]);
@@ -107,7 +107,7 @@ class MentionService {
         const db = getDb();
 
         const mentions = await db.all(`
-            SELECT u.id, u.username, u.name, u.avatar_url
+            SELECT u.id, u.name as username, u.name, u.avatar_url
             FROM mentions m
             INNER JOIN users u ON m.user_id = u.id
             WHERE m.message_id = ?
@@ -137,7 +137,7 @@ class MentionService {
         const db = getDb();
 
         const messages = await db.all(`
-            SELECT m.*, u.username, u.name as user_name, u.avatar_url,
+            SELECT m.*, u.name as username, u.name as user_name, u.avatar_url,
                    c.name as channel_name, c.id as channel_id
             FROM mentions men
             INNER JOIN messages m ON men.message_id = m.id
