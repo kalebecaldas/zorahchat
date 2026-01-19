@@ -50,7 +50,7 @@ router.get('/:channelId', authMiddleware, async (req, res) => {
         // Get reactions for each message
         for (let msg of messages) {
             const reactions = await db.all(`
-                SELECT emoji, COUNT(*) as count, GROUP_CONCAT(user_id) as user_ids
+                SELECT emoji, COUNT(*) as count, STRING_AGG(user_id::text, ',') as user_ids
                 FROM message_reactions
                 WHERE message_id = ?
                 GROUP BY emoji
@@ -346,7 +346,7 @@ router.post('/:messageId/reactions', authMiddleware, async (req, res) => {
 
         // Get updated reactions
         const reactions = await db.all(`
-            SELECT emoji, COUNT(*) as count, GROUP_CONCAT(user_id) as user_ids
+            SELECT emoji, COUNT(*) as count, STRING_AGG(user_id::text, ',') as user_ids
             FROM message_reactions
             WHERE message_id = ?
             GROUP BY emoji
