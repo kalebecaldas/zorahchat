@@ -26,7 +26,7 @@ router.get('/:workspaceId/channel/:channelId', authMiddleware, async (req, res) 
             FROM channels c
             LEFT JOIN channel_members cm ON c.id = cm.channel_id
             WHERE c.id = ? AND c.workspace_id = ?
-              AND (c.is_private = 0 OR EXISTS (
+              AND (c.is_private = false OR EXISTS (
                   SELECT 1 FROM channel_members cm2 
                   WHERE cm2.channel_id = c.id AND cm2.user_id = ?
               ))
