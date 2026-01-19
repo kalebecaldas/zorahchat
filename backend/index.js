@@ -62,13 +62,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Initialize Database
 initializeDatabase().then(async () => {
-    try {
-        const db = getDb();
-        await db.run("UPDATE users SET status = 'offline'");
-        console.log('[DATABASE] All user statuses reset to offline on startup');
-    } catch (err) {
-        console.error('[DATABASE] Failed to reset user statuses:', err);
-    }
+    // REMOVED: Don't reset user statuses on startup
+    // This was causing users to lose their away/busy status
+    // Users will be set to online when they actually connect via socket
+    console.log('[DATABASE] Database initialized - preserving user statuses');
 }).catch(err => {
     console.error('Failed to initialize database:', err);
     process.exit(1);

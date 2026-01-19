@@ -180,10 +180,10 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
         // Join workspace initially
         joinWorkspace();
 
-        // Re-join on reconnect & Force status online locally
+        // Re-join on reconnect (preserve user's chosen status)
         const handleConnect = () => {
             joinWorkspace();
-            setUserStatus('online');
+            // Don't force online - user may have set themselves as away/busy
         };
         socket.on('connect', handleConnect);
 
