@@ -443,48 +443,51 @@ body {
 .auth-box {
   width: 100%;
   max-width: 400px;
-  padding: 2rem;
-  background: var(--bg-sidebar);
+  padding: 2.5rem;
+  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-.auth-title {
-  font-size: 1.5rem;
+.logo-text {
+  font-size: 1.25rem;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
   color: var(--text-main);
+  letter-spacing: -0.02em;
 }
 
-.form-group {
-  margin-bottom: 1.25rem;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 0.4rem;
-}
-
+/* Auth Inputs fix */
+.auth-box input[type="email"],
+.auth-box input[type="password"],
+.auth-box input[type="text"],
 .form-input {
   width: 100%;
-  padding: 0.6rem 0.8rem;
-  background: var(--bg-surface);
+  padding: 0.75rem 1rem;
+  background: var(--bg-app);
+  /* Darker background inside surface */
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-main);
   font-size: 0.9rem;
   transition: all 0.2s;
+  outline: none;
 }
 
+.auth-box input:focus,
 .form-input:focus {
-  outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--primary-faint);
+}
+
+.auth-box label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
 }
 
 .btn-primary {
@@ -498,6 +501,7 @@ body {
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s;
+  margin-top: 1rem;
 }
 
 .btn-primary:hover {
