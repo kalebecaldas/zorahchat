@@ -202,14 +202,23 @@ io.on('connection', async (socket) => {
 
         if (!stillConnected) {
             try {
-                console.log(`[SOCKET] User ${userId} has no other connections, setting to offline`);
-                await db.run(
-                    'UPDATE users SET status = ?, last_seen = CURRENT_TIMESTAMP WHERE id = ?',
-                    ['offline', userId]
-                );
-                console.log(`[SOCKET] Emitting user-status-change for user ${userId} to status: offline`);
-                io.emit('user-status-change', { userId, status: 'offline' });
-                console.log(`[SOCKET] ✓ user-status-change (offline) event emitted to all clients`);
+                // Only set to offline if user was 'online' - preserve away/busy status
+                const currentUser = await db.get('SELECT status FROM users WHERE id = ?', [userId]);
+
+                if (currentUser?.status === 'online') {
+                    console.log(`[SOCKET] User ${userId} has no other connections, setting to offline`);
+                    await db.run(
+                        'UPDATE users SET status = ?, last_seen = CURRENT_TIMESTAMP WHERE id = ?',
+                        ['offline', userId]
+                    );
+                    console.log(`[SOCKET] Emitting user-status-change for user ${userId} to status: offline`);
+                    io.emit('user-status-change', { userId, status: 'offline' });
+                    console.log(`[SOCKET] ✓ user-status-change (offline) event emitted to all clients`);
+                } else {
+                    console.log(`[SOCKET] User ${userId} disconnected but status is ${currentUser?.status}, preserving it`);
+                    // Just update last_seen, don't change status
+                    await db.run('UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?', [userId]);
+                }
             } catch (err) {
                 console.error('Error setting user offline:', err);
             }
