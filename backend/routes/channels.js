@@ -65,7 +65,7 @@ router.get('/:workspaceId', authMiddleware, async (req, res) => {
             FROM channels c
             LEFT JOIN channel_members cm ON c.id = cm.channel_id
             WHERE c.workspace_id = ? 
-              AND (c.is_private = 0 OR EXISTS (
+              AND (c.is_private = false OR EXISTS (
                   SELECT 1 FROM channel_members cm2 
                   WHERE cm2.channel_id = c.id AND cm2.user_id = ?
               ))
@@ -107,10 +107,10 @@ router.post('/', authMiddleware, async (req, res) => {
 
         const result = await db.run(
             'INSERT INTO channels (workspace_id, name, type, description, is_private, created_by) VALUES (?, ?, ?, ?, ?, ?)',
-            [workspaceId, name, type || 'public', description || null, is_private ? 1 : 0, req.userId]
+            [workspaceId, name, type || 'public', description || null, !!is_private, req.userId]
         );
 
-        const channel = await db.get('SELECT * FROM channels WHERE id = ?', result.lastID);
+        const channel = await db.get('SELECT * FROM channels WHERE id = ?', [result.lastID]);
 
         // Auto-add creator to channel
         await db.run(
@@ -270,8 +270,8 @@ router.put('/:channelId/settings', authMiddleware, async (req, res) => {
                  is_private = COALESCE(?, is_private),
                  is_default = COALESCE(?, is_default)
              WHERE id = ?`,
-            [name, description, is_private !== undefined ? (is_private ? 1 : 0) : null,
-                is_default !== undefined ? (is_default ? 1 : 0) : null, channelId]
+            [name, description, is_private !== undefined ? !!is_private : null,
+                is_default !== undefined ? !!is_default : null, channelId]
         );
 
         const updatedChannel = await db.get('SELECT * FROM channels WHERE id = ?', [channelId]);
