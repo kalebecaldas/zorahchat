@@ -20,10 +20,14 @@ class PostgresAdapter {
         // 2. DATETIME DEFAULT CURRENT_TIMESTAMP -> checks usually handled in DDL
 
         // Handle INSERT ... RETURNING id for lastID compatibility
-        if (converted.trim().match(/^INSERT/i) && !converted.includes('RETURNING')) {
-            // Simple heuristic: if insert, append returning id to mimic sqlite lastID
-            // This might fail for composite keys or non-id tables, but works for 99% of our cases
-            converted += ' RETURNING id';
+        if (converted.trim().toUpperCase().startsWith('INSERT')) {
+            // Remove trailing semicolon if present
+            converted = converted.trim().replace(/;+$/, '');
+
+            // Only add RETURNING if not already present
+            if (!converted.toUpperCase().includes('RETURNING')) {
+                converted += ' RETURNING id';
+            }
         }
 
         return converted;
