@@ -19,13 +19,21 @@ class PostgresAdapter {
         // 1. AUTOINCREMENT -> GENERATED ALWAYS AS IDENTITY (Handled in schema creation, not here)
         // 2. DATETIME DEFAULT CURRENT_TIMESTAMP -> checks usually handled in DDL
 
+        // Tables without 'id' column (composite primary keys)
+        const TABLES_WITHOUT_ID = ['workspace_users'];
+
         // Handle INSERT ... RETURNING id for lastID compatibility
         if (converted.trim().toUpperCase().startsWith('INSERT')) {
             // Remove trailing semicolon if present
             converted = converted.trim().replace(/;+$/, '');
 
-            // Only add RETURNING if not already present
-            if (!converted.toUpperCase().includes('RETURNING')) {
+            // Check if this is a table without id column
+            const hasTableWithoutId = TABLES_WITHOUT_ID.some(table =>
+                converted.toLowerCase().includes(`insert into ${table}`)
+            );
+
+            // Only add RETURNING if not already present AND table has id column
+            if (!hasTableWithoutId && !converted.toUpperCase().includes('RETURNING')) {
                 converted += ' RETURNING id';
             }
         }
