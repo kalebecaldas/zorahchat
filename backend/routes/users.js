@@ -26,7 +26,7 @@ router.get('/:workspaceId/members', authMiddleware, async (req, res) => {
             JOIN workspace_users wu ON u.id = wu.user_id
             WHERE wu.workspace_id = ?
             ORDER BY u.name ASC
-        `, workspaceId);
+        `, [workspaceId]);
 
         res.json(members);
     } catch (error) {

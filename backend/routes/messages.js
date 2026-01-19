@@ -392,13 +392,13 @@ router.get('/unread/:workspaceId', authMiddleware, async (req, res) => {
                     WHERE m.channel_id = c.id 
                     AND m.created_at > COALESCE(
                         (SELECT last_read_at FROM read_receipts 
-                         WHERE user_id = ? AND channel_id = c.id AND (dm_id IS NULL OR dm_id = '')), 
+                         WHERE user_id = ? AND channel_id = c.id AND dm_id IS NULL), 
                         '1970-01-01 00:00:00'
                     )
                     AND m.deleted_at IS NULL
                    ) as unread_count,
                    (SELECT last_read_at FROM read_receipts 
-                    WHERE user_id = ? AND channel_id = c.id AND (dm_id IS NULL OR dm_id = '')) as last_read_at
+                    WHERE user_id = ? AND channel_id = c.id AND dm_id IS NULL) as last_read_at
             FROM channels c
             WHERE c.workspace_id = ?
         `, [req.userId, req.userId, workspaceId]);
@@ -417,14 +417,14 @@ router.get('/unread/:workspaceId', authMiddleware, async (req, res) => {
                     WHERE m.dm_id = dm.id 
                     AND m.created_at > COALESCE(
                         (SELECT last_read_at FROM read_receipts 
-                         WHERE user_id = ? AND dm_id = dm.id AND (channel_id IS NULL OR channel_id = '')), 
+                         WHERE user_id = ? AND dm_id = dm.id AND channel_id IS NULL), 
                         '1970-01-01 00:00:00'
                     )
                     AND m.user_id != ?
                     AND m.deleted_at IS NULL
                    ) as unread_count,
                    (SELECT last_read_at FROM read_receipts 
-                    WHERE user_id = ? AND dm_id = dm.id AND (channel_id IS NULL OR channel_id = '')) as last_read_at
+                    WHERE user_id = ? AND dm_id = dm.id AND channel_id IS NULL) as last_read_at
             FROM direct_messages dm
             WHERE dm.workspace_id = ?
               AND (dm.user1_id = ? OR dm.user2_id = ?)
