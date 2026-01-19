@@ -106,13 +106,20 @@ io.on('connection', async (socket) => {
     });
     const db = getDb();
 
-    // Get current user status (don't force online - preserve away/busy)
+    // Get current user status and handle connection
     try {
         const currentUser = await db.get('SELECT status FROM users WHERE id = ?', [userId]);
-        const userStatus = currentUser?.status || 'online';
+        let userStatus = currentUser?.status || 'online';
 
-        // Only emit status change, don't override user's chosen status
-        console.log(`[SOCKET] User ${userId} connected with status: ${userStatus}`);
+        // If user was offline, set to online (they just connected)
+        // But preserve away/busy status (user explicitly set these)
+        if (!userStatus || userStatus === 'offline') {
+            await db.run('UPDATE users SET status = ? WHERE id = ?', ['online', userId]);
+            userStatus = 'online';
+            console.log(`[SOCKET] User ${userId} connected, setting from ${currentUser?.status} to online`);
+        } else {
+            console.log(`[SOCKET] User ${userId} connected with preserved status: ${userStatus}`);
+        }
 
         // Get all connected sockets for debugging
         const allSockets = await io.fetchSockets();
