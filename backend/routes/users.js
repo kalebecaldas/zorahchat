@@ -40,7 +40,7 @@ router.put('/status', authMiddleware, async (req, res) => {
     const { status, status_message } = req.body;
     const db = getDb();
 
-    const validStatuses = ['online', 'away', 'busy', 'offline'];
+    const validStatuses = ['online', 'away', 'busy'];
     if (status && !validStatuses.includes(status)) {
         return res.status(400).json({ error: 'Invalid status' });
     }

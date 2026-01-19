@@ -883,7 +883,7 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                         boxShadow: 'var(--shadow-lg)',
                         zIndex: 1000
                     }}>
-                        {['online', 'away', 'busy', 'offline'].map(status => (
+                        {['online', 'away', 'busy'].map(status => (
                             <div
                                 key={status}
                                 onClick={() => handleStatusChange(status)}
