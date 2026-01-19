@@ -114,50 +114,32 @@ export default function WorkspaceManagement() {
     };
 
     const getRoleBadge = (role) => {
-        const styles = {
-            admin: { bg: 'rgba(99, 102, 241, 0.2)', color: 'var(--zorah-accent)', text: '👑 Admin' },
-            moderator: { bg: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', text: '⭐ Moderador' },
-            member: { bg: 'var(--zorah-bg-subtle)', color: 'var(--text-secondary)', text: '👤 Membro' }
+        const classes = {
+            admin: 'badge badge-admin',
+            moderator: 'badge badge-moderator',
+            member: 'badge badge-member'
         };
-        const style = styles[role] || styles.member;
-
+        const labels = {
+            admin: 'Admin',
+            moderator: 'Moderador',
+            member: 'Membro'
+        };
         return (
-            <span style={{
-                fontSize: '0.75rem',
-                padding: '0.25rem 0.6rem',
-                borderRadius: 'var(--radius-sm)',
-                background: style.bg,
-                color: style.color,
-                fontWeight: '500'
-            }}>
-                {style.text}
+            <span className={classes[role] || classes.member}>
+                {role === 'admin' ? '👑 ' : ''}{labels[role] || 'Membro'}
             </span>
         );
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--zorah-bg)', padding: '3rem 2rem' }}>
-            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-                <div style={{ marginBottom: '3rem' }}>
-                    <button
-                        onClick={() => navigate(`/client/${workspaceId}`)}
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--text-secondary)',
-                            fontSize: '0.9rem',
-                            cursor: 'pointer',
-                            marginBottom: '1rem'
-                        }}
-                    >
+        <div className="page-container">
+            <div className="page-content">
+                <div className="page-header">
+                    <button onClick={() => navigate(`/client/${workspaceId}`)} className="back-link">
                         ← Voltar ao Workspace
                     </button>
-                    <h1 style={{ fontSize: '1.75rem', fontWeight: '700', marginBottom: '0.5rem' }}>
-                        Gerenciar Membros
-                    </h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                        {workspace?.name}
-                    </p>
+                    <h1 className="page-title">Gerenciar Membros</h1>
+                    <p className="page-subtitle">{workspace?.name}</p>
                 </div>
 
                 {message && (
@@ -165,11 +147,12 @@ export default function WorkspaceManagement() {
                         padding: '1rem',
                         marginBottom: '1.5rem',
                         background: 'rgba(16, 185, 129, 0.1)',
-                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        border: '1px solid rgba(16, 185, 129, 0.2)',
                         borderRadius: 'var(--radius-sm)',
-                        color: '#6ee7b7'
+                        color: '#34d399',
+                        fontSize: '0.9rem'
                     }}>
-                        {message}
+                        ✓ {message}
                     </div>
                 )}
 
@@ -178,114 +161,68 @@ export default function WorkspaceManagement() {
                         padding: '1rem',
                         marginBottom: '1.5rem',
                         background: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
                         borderRadius: 'var(--radius-sm)',
-                        color: '#fca5a5'
+                        color: '#f87171',
+                        fontSize: '0.9rem'
                     }}>
-                        {error}
+                        ⚠ {error}
                     </div>
                 )}
 
                 {/* Invite Section */}
-                <div style={{
-                    background: 'var(--zorah-surface)',
-                    border: '1px solid var(--zorah-border)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '2rem',
-                    marginBottom: '2rem'
-                }}>
-                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Convidar Novo Membro</h3>
+                <div className="card-section">
+                    <h3 className="card-title">Convidar Novo Membro</h3>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-                        Digite o email de um usuário cadastrado para convidá-lo ao workspace.
+                        Adicione novos membros ao seu time por email.
                     </p>
                     <form onSubmit={handleInvite} style={{ display: 'flex', gap: '0.75rem' }}>
                         <input
                             type="email"
+                            className="form-input"
                             value={inviteEmail}
                             onChange={e => setInviteEmail(e.target.value)}
                             placeholder="email@exemplo.com"
                             required
-                            style={{
-                                flex: 1,
-                                padding: '0.75rem 1rem',
-                                background: 'var(--zorah-bg)',
-                                border: '1px solid var(--zorah-border)',
-                                borderRadius: 'var(--radius-sm)',
-                                color: 'var(--text-primary)'
-                            }}
+                            style={{ flex: 1 }}
                         />
-                        <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '0.75rem 1.5rem' }}>
+                        <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '0.6rem 1.25rem', marginTop: 0 }}>
                             Convidar
                         </button>
                     </form>
                 </div>
 
                 {/* Members List */}
-                <div style={{
-                    background: 'var(--zorah-surface)',
-                    border: '1px solid var(--zorah-border)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '2rem'
-                }}>
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
+                <div className="card-section">
+                    <h3 className="card-title">
                         Membros ({members.length})
                     </h3>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {members.map(member => (
-                            <div
-                                key={member.id}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '1rem',
-                                    background: 'var(--zorah-bg)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--zorah-border)'
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                                    <div style={{
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '50%',
-                                        background: 'linear-gradient(135deg, var(--zorah-primary) 0%, var(--zorah-accent) 100%)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '1rem',
-                                        fontWeight: '600',
-                                        color: 'white'
-                                    }}>
+                            <div key={member.id} className="list-item">
+                                <div className="list-item-content">
+                                    <div className="list-item-avatar">
                                         {member.avatar_url ? (
                                             <img src={member.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
                                         ) : (
                                             member.name[0].toUpperCase()
                                         )}
                                     </div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{member.name}</div>
-                                        <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>{member.email}</div>
+                                    <div className="list-item-info">
+                                        <h4>{member.name} {workspace?.owner_id === member.id && <span className="badge badge-owner" style={{ marginLeft: '0.5rem', fontSize: '0.65rem' }}>OWNER</span>}</h4>
+                                        <p>{member.email}</p>
                                     </div>
                                     {getRoleBadge(member.role)}
                                 </div>
 
-                                <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '1.5rem' }}>
                                     {member.role !== 'admin' && workspace?.owner_id !== member.id && (
                                         <>
                                             <select
                                                 value={member.role}
                                                 onChange={e => handleRoleChange(member.id, e.target.value)}
-                                                style={{
-                                                    padding: '0.5rem',
-                                                    background: 'var(--zorah-surface)',
-                                                    border: '1px solid var(--zorah-border)',
-                                                    borderRadius: 'var(--radius-sm)',
-                                                    color: 'var(--text-primary)',
-                                                    fontSize: '0.875rem',
-                                                    cursor: 'pointer'
-                                                }}
+                                                className="select-role"
                                             >
                                                 <option value="member">Membro</option>
                                                 <option value="moderator">Moderador</option>
@@ -293,32 +230,11 @@ export default function WorkspaceManagement() {
                                             </select>
                                             <button
                                                 onClick={() => handleRemoveMember(member.id, member.name)}
-                                                style={{
-                                                    padding: '0.5rem 1rem',
-                                                    background: 'rgba(239, 68, 68, 0.1)',
-                                                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                                                    borderRadius: 'var(--radius-sm)',
-                                                    color: '#fca5a5',
-                                                    cursor: 'pointer',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: '500',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
-                                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                                                className="btn-danger-ghost"
                                             >
                                                 Remover
                                             </button>
                                         </>
-                                    )}
-                                    {workspace?.owner_id === member.id && (
-                                        <span style={{
-                                            padding: '0.5rem 1rem',
-                                            fontSize: '0.875rem',
-                                            color: 'var(--text-tertiary)'
-                                        }}>
-                                            Proprietário
-                                        </span>
                                     )}
                                 </div>
                             </div>

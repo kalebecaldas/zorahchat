@@ -1112,7 +1112,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                                         handleMentionInput(e.target.value, e.target);
                                     }
                                 }}
-                                placeholder={isDM ? `Mensagem para ${dmUser?.name}` : `Enviar mensagem em #${channelName || channelId}`}
+                                placeholder={isDM ? `Mensagem para ${dmUser?.name || '...'}` : `Enviar mensagem em #${channelName || '...'}`}
                                 style={{ width: '100%' }}
                             />
 
