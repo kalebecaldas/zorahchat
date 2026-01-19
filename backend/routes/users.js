@@ -51,7 +51,7 @@ router.put('/status', authMiddleware, async (req, res) => {
             [status || 'online', status_message || null, req.userId]
         );
 
-        const user = await db.get('SELECT id, name, email, avatar_url, status, status_message FROM users WHERE id = ?', req.userId);
+        const user = await db.get('SELECT id, name, email, avatar_url, status, status_message FROM users WHERE id = ?', [req.userId]);
         res.json(user);
     } catch (error) {
         console.error('Update Status Error:', error);
