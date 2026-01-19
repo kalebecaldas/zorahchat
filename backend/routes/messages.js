@@ -27,7 +27,7 @@ router.get('/:channelId', authMiddleware, async (req, res) => {
     const db = getDb();
 
     try {
-        const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', channelId);
+        const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', [channelId]);
         if (!channel) return res.status(404).json({ error: 'Channel not found' });
 
         const membership = await db.get(
@@ -45,7 +45,7 @@ router.get('/:channelId', authMiddleware, async (req, res) => {
             JOIN users u ON m.user_id = u.id
             WHERE m.channel_id = ? AND m.deleted_at IS NULL
             ORDER BY m.created_at ASC
-        `, channelId);
+        `, [channelId]);
 
         // Get reactions for each message
         for (let msg of messages) {
@@ -54,7 +54,7 @@ router.get('/:channelId', authMiddleware, async (req, res) => {
                 FROM message_reactions
                 WHERE message_id = ?
                 GROUP BY emoji
-            `, msg.id);
+            `, [msg.id]);
             msg.reactions = reactions.map(r => ({
                 emoji: r.emoji,
                 count: r.count,
@@ -95,7 +95,7 @@ router.post('/', authMiddleware, async (req, res) => {
     const db = getDb();
 
     try {
-        const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', channelId);
+        const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', [channelId]);
         if (!channel) return res.status(404).json({ error: 'Channel not found' });
 
         const canWrite = await hasPermission(db, channel.workspace_id, req.userId, 'write');
@@ -113,7 +113,7 @@ router.post('/', authMiddleware, async (req, res) => {
             FROM messages m
             JOIN users u ON m.user_id = u.id
             WHERE m.id = ?
-        `, result.lastID);
+        `, [result.lastID]);
 
         message.reactions = [];
 
@@ -321,7 +321,7 @@ router.post('/:messageId/reactions', authMiddleware, async (req, res) => {
     const db = getDb();
 
     try {
-        const message = await db.get('SELECT * FROM messages WHERE id = ?', messageId);
+        const message = await db.get('SELECT * FROM messages WHERE id = ?', [messageId]);
         if (!message) return res.status(404).json({ error: 'Message not found' });
 
         // Check if already reacted with this emoji
@@ -350,7 +350,7 @@ router.post('/:messageId/reactions', authMiddleware, async (req, res) => {
             FROM message_reactions
             WHERE message_id = ?
             GROUP BY emoji
-        `, messageId);
+        `, [messageId]);
 
         const formattedReactions = reactions.map(r => ({
             emoji: r.emoji,
@@ -456,7 +456,7 @@ router.post('/channels/:channelId/read', authMiddleware, async (req, res) => {
 
     try {
         // Verify user has access to this channel
-        const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', channelId);
+        const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', [channelId]);
         if (!channel) return res.status(404).json({ error: 'Channel not found' });
 
         const membership = await db.get(
@@ -514,11 +514,11 @@ router.put('/:messageId', authMiddleware, async (req, res) => {
     const db = getDb();
 
     try {
-        const message = await db.get('SELECT * FROM messages WHERE id = ?', messageId);
+        const message = await db.get('SELECT * FROM messages WHERE id = ?', [messageId]);
         if (!message) return res.status(404).json({ error: 'Message not found' });
 
         if (message.user_id !== req.userId) {
-            const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', message.channel_id);
+            const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', [message.channel_id]);
             const membership = await db.get(
                 'SELECT role FROM workspace_users WHERE workspace_id = ? AND user_id = ?',
                 [channel.workspace_id, req.userId]
@@ -539,7 +539,7 @@ router.put('/:messageId', authMiddleware, async (req, res) => {
             FROM messages m
             JOIN users u ON m.user_id = u.id
             WHERE m.id = ?
-        `, messageId);
+        `, [messageId]);
 
         // Emit via Socket.io
         const io = req.app.get('io');
@@ -558,11 +558,11 @@ router.delete('/:messageId', authMiddleware, async (req, res) => {
     const db = getDb();
 
     try {
-        const message = await db.get('SELECT * FROM messages WHERE id = ?', messageId);
+        const message = await db.get('SELECT * FROM messages WHERE id = ?', [messageId]);
         if (!message) return res.status(404).json({ error: 'Message not found' });
 
         if (message.user_id !== req.userId) {
-            const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', message.channel_id);
+            const channel = await db.get('SELECT workspace_id FROM channels WHERE id = ?', [message.channel_id]);
             const canDelete = await hasPermission(db, channel.workspace_id, req.userId, 'delete');
 
             if (!canDelete) {
