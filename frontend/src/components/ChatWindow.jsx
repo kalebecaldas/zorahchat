@@ -806,76 +806,36 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
     return (
         <div className="chat-window">
-            <div className="chat-header">
-                {/* Connection Status Indicator */}
+            <header className="chat-header">
+                {/* Connection Status (Hidden on production usually, but kept for debug) */}
                 {socket && (
-                    <div style={{
-                        position: 'absolute',
-                        top: '10px',
-                        right: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '0.7rem',
-                        background: 'rgba(0, 0, 0, 0.6)',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        border: `1px solid ${socket.connected ? '#10b981' : '#ef4444'}`,
-                        zIndex: 10
-                    }}>
-                        <div style={{
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            background: socket.connected ? '#10b981' : '#ef4444'
-                        }} />
-                        <span style={{ color: socket.connected ? '#10b981' : '#ef4444', fontWeight: '600' }}>
-                            {socket.connected ? 'On' : 'Off'}
-                        </span>
+                    <div className={`socket-status ${socket.connected ? 'connected' : 'disconnected'}`}>
+                        <div className="status-dot" />
+                        <span>{socket.connected ? 'On' : 'Off'}</span>
                     </div>
                 )}
 
                 {isDM ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <div style={{ position: 'relative' }}>
-                            <div style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: '50%',
-                                background: 'linear-gradient(135deg, var(--zorah-primary) 0%, var(--zorah-accent) 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '1rem',
-                                fontWeight: '600',
-                                color: 'white'
-                            }}>
+                    <div className="header-content">
+                        <div className="header-avatar-container">
+                            <div className="header-avatar">
                                 {dmUser?.avatar ? (
-                                    <img src={dmUser.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+                                    <img src={dmUser.avatar} alt="" />
                                 ) : (
                                     dmUser?.name?.[0]?.toUpperCase()
                                 )}
                             </div>
-                            <div style={{
-                                position: 'absolute',
-                                bottom: '-2px',
-                                right: '-2px',
-                                width: '12px',
-                                height: '12px',
-                                borderRadius: '50%',
-                                background: getStatusColor(dmUser?.status),
-                                border: '2px solid var(--zorah-bg-subtle)'
-                            }} />
+                            <div className={`status-indicator status-${dmUser?.status || 'offline'}`} />
                         </div>
-                        <span style={{ fontWeight: '600', fontSize: '1rem' }}>{dmUser?.name}</span>
+                        <h2 className="header-title">{dmUser?.name}</h2>
                     </div>
                 ) : (
-                    <>
-                        <span style={{ fontSize: '1.2rem', color: 'var(--text-tertiary)', marginRight: '6px' }}>#</span>
-                        <span style={{ fontWeight: '600', fontSize: '1rem' }}>{channelName || '...'}</span>
-                    </>
+                    <div className="header-content">
+                        <div className="channel-hash">#</div>
+                        <h2 className="header-title">{channelName || 'Selecione um canal'}</h2>
+                    </div>
                 )}
-            </div>
+            </header>
 
             <div className="message-list">
                 {messages.length === 0 && (

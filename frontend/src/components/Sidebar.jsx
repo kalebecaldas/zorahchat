@@ -372,105 +372,40 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
 
                 {/* Workspace Dropdown */}
                 {showWorkspaceMenu && (
-                    <div style={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: 0,
-                        right: 0,
-                        background: 'var(--zorah-surface)',
-                        border: '1px solid var(--zorah-border)',
-                        borderRadius: 'var(--radius-md)',
-                        marginTop: '0.5rem',
-                        boxShadow: 'var(--shadow-lg)',
-                        zIndex: 1000,
-                        maxHeight: '300px',
-                        overflowY: 'auto'
-                    }}>
-                        <div style={{ padding: '0.5rem' }}>
-                            <div style={{
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                color: 'var(--text-tertiary)',
-                                padding: '0.5rem 0.75rem',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em'
-                            }}>
-                                Seus Workspaces
-                            </div>
-                            {allWorkspaces.map(ws => (
-                                <button
-                                    key={ws.id}
-                                    onClick={() => {
-                                        setShowWorkspaceMenu(false);
-                                        navigate(`/client/${ws.id}`);
-                                    }}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        background: ws.id == workspaceId ? 'var(--zorah-surface-hover)' : 'transparent',
-                                        border: 'none',
-                                        borderRadius: 'var(--radius-sm)',
-                                        color: 'var(--text-primary)',
-                                        textAlign: 'left',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.75rem',
-                                        transition: 'background 0.2s'
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--zorah-surface-hover)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = ws.id == workspaceId ? 'var(--zorah-surface-hover)' : 'transparent'}
-                                >
-                                    <div style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        background: 'linear-gradient(135deg, var(--zorah-primary) 0%, var(--zorah-accent) 100%)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '0.9rem',
-                                        fontWeight: '700',
-                                        color: 'white',
-                                        flexShrink: 0
-                                    }}>
-                                        {ws.name[0].toUpperCase()}
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: '0.9rem', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {ws.name}
-                                        </div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                                            {ws.role === 'admin' ? '👑 Admin' : '👤 Membro'}
-                                        </div>
-                                    </div>
-                                </button>
-                            ))}
-                            <div style={{ height: '1px', background: 'var(--zorah-border)', margin: '0.5rem 0' }} />
+                    <div className="workspace-dropdown">
+                        <div className="dropdown-section-title">
+                            Seus Workspaces
+                        </div>
+                        {allWorkspaces.map(ws => (
                             <button
+                                key={ws.id}
                                 onClick={() => {
                                     setShowWorkspaceMenu(false);
-                                    navigate('/client');
+                                    navigate(`/client/${ws.id}`);
                                 }}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    borderRadius: 'var(--radius-sm)',
-                                    color: 'var(--zorah-primary)',
-                                    textAlign: 'left',
-                                    cursor: 'pointer',
-                                    fontSize: '0.9rem',
-                                    fontWeight: '500',
-                                    transition: 'background 0.2s'
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'var(--zorah-surface-hover)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                className={`workspace-item ${ws.id == workspaceId ? 'active' : ''}`}
                             >
-                                + Criar Novo Workspace
+                                <div className="workspace-icon">
+                                    {ws.name[0].toUpperCase()}
+                                </div>
+                                <div className="workspace-info">
+                                    <div className="workspace-name">{ws.name}</div>
+                                    <div className="workspace-role">
+                                        {ws.role === 'admin' ? '👑 Admin' : '👤 Membro'}
+                                    </div>
+                                </div>
                             </button>
-                        </div>
+                        ))}
+                        <div className="dropdown-divider" />
+                        <button
+                            onClick={() => {
+                                setShowWorkspaceMenu(false);
+                                navigate('/client');
+                            }}
+                            className="create-workspace-btn"
+                        >
+                            + Criar Novo Workspace
+                        </button>
                     </div>
                 )}
             </div>
