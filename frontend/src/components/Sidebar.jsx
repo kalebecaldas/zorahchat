@@ -180,8 +180,12 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
         // Join workspace initially
         joinWorkspace();
 
-        // Re-join on reconnect
-        socket.on('connect', joinWorkspace);
+        // Re-join on reconnect & Force status online locally
+        const handleConnect = () => {
+            joinWorkspace();
+            setUserStatus('online');
+        };
+        socket.on('connect', handleConnect);
 
         socket.on('new-message', () => {
             fetchUnreadCounts();
@@ -194,7 +198,6 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                 ...prev,
                 [channelId]: 0
             }));
-            // Also refresh counts from server to ensure accuracy
             fetchUnreadCounts();
         });
 
@@ -204,7 +207,6 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                 ...prev,
                 [`dm-${dmId}`]: 0
             }));
-            // Also refresh counts from server to ensure accuracy
             fetchUnreadCounts();
         });
 
@@ -214,11 +216,16 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
 
         socket.on('user-status-change', ({ userId, status }) => {
             console.log('[SIDEBAR] Received user-status-change event:', { userId, status });
+
+            // 🚀 Fix: Update OWN status if it changed
+            if (userId === user?.id) {
+                setUserStatus(status);
+            }
+
             setMembers(prev => {
                 const updated = prev.map(m =>
                     m.id === userId ? { ...m, status } : m
                 );
-                console.log('[SIDEBAR] Updated members status:', updated.map(m => ({ id: m.id, name: m.name, status: m.status })));
                 return updated;
             });
 
@@ -234,7 +241,7 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
         });
 
         return () => {
-            socket.off('connect', joinWorkspace);
+            socket.off('connect', handleConnect);
             socket.off('new-message');
             socket.off('channel-marked-read');
             socket.off('dm-marked-read');
