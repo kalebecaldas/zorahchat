@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
+    "db:init": "node scripts/init_postgres.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
