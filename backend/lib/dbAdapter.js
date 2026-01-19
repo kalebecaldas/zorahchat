@@ -69,9 +69,15 @@ class PostgresAdapter {
             console.log('[DB ADAPTER] RUN Result:', returnValue);
             return returnValue;
         } catch (err) {
-            console.error('[DB ADAPTER] RUN ERROR:', err.message);
-            console.error('[DB ADAPTER] Failed Query:', normalized);
-            console.error('[DB ADAPTER] Failed Params:', params);
+            // Silenciar erros comuns esperados (migrações)
+            const expectedErrors = ['already exists', 'duplicate column'];
+            const isExpectedError = expectedErrors.some(msg => err.message.toLowerCase().includes(msg));
+
+            if (!isExpectedError) {
+                console.error('[DB ADAPTER] RUN ERROR:', err.message);
+                console.error('[DB ADAPTER] Failed Query:', normalized);
+                console.error('[DB ADAPTER] Failed Params:', params);
+            }
             throw err;
         } finally {
             client.release();
