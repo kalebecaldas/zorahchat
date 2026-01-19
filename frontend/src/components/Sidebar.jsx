@@ -473,6 +473,7 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                     >
                         <Link
                             to={`/client/${workspaceId}/${channel.id}`}
+                            state={{ channelName: channel.name }} // 🚀 Pass name instantly
                             style={{
                                 flex: 1,
                                 display: 'flex',
@@ -721,6 +722,13 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                     <Link
                         key={dm.id}
                         to={`/client/${workspaceId}/dm/${dm.id}`}
+                        state={{
+                            dmInfo: {
+                                name: dm.other_user_name,
+                                avatar: dm.other_user_avatar,
+                                status: dm.other_user_status
+                            }
+                        }} // 🚀 Pass DM info instantly
                         className={`channel-item ${currentDmId == dm.id ? 'active' : ''}`}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >

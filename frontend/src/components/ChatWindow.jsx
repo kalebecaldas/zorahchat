@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import FileModal from './FileModal';
@@ -30,6 +31,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
     const { socket, connected } = useSocket();
     const [connectionDebug, setConnectionDebug] = useState('');
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+    const location = useLocation(); // 🚀 Access navigation state
 
     const isDM = !!dmId;
 
@@ -41,17 +43,36 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
         setMessages([]); // Clear stale messages
 
-        // Load from cache immediately for instant display
-        if (!isDM && channelId && channelCacheRef.current[channelId]) {
-            setChannelName(channelCacheRef.current[channelId]);
-        } else {
-            setChannelName(''); // Reset channel name
+        // 🚀 INSTANT LOAD: Check navigation state first, then cache
+
+        let hasInstantData = false;
+
+        // 1. Channel Name
+        if (!isDM && channelId) {
+            if (location.state?.channelName) {
+                setChannelName(location.state.channelName);
+                channelCacheRef.current[channelId] = location.state.channelName; // Update cache
+                hasInstantData = true;
+            } else if (channelCacheRef.current[channelId]) {
+                setChannelName(channelCacheRef.current[channelId]);
+                hasInstantData = true;
+            } else {
+                setChannelName(''); // Don't clear if we're fetching soon, but strictly usually safe
+            }
         }
 
-        if (isDM && dmId && dmCacheRef.current[dmId]) {
-            setDmUser(dmCacheRef.current[dmId]);
-        } else {
-            setDmUser(null); // Reset DM user
+        // 2. DM User Info
+        if (isDM && dmId) {
+            if (location.state?.dmInfo) {
+                setDmUser(location.state.dmInfo);
+                dmCacheRef.current[dmId] = location.state.dmInfo; // Update cache
+                hasInstantData = true;
+            } else if (dmCacheRef.current[dmId]) {
+                setDmUser(dmCacheRef.current[dmId]);
+                hasInstantData = true;
+            } else {
+                setDmUser(null);
+            }
         }
 
         // Helper function to mark channel/DM as read
