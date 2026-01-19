@@ -885,124 +885,136 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     </div>
                 )}
 
-                {messages.map(msg => (
-                    <div
-                        key={msg.id}
-                        className={`message-item ${Number(msg.user_id) === Number(user?.id) ? 'own-message' : ''}`}
-                        onContextMenu={(e) => {
-                            e.preventDefault();
-                            setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id);
-                        }}
-                        // Long press logic for mobile
-                        onTouchStart={() => {
-                            window.longPressTimer = setTimeout(() => {
+                {messages.map(msg => {
+                    const isOwnMessage = Number(msg.user_id) === Number(user?.id);
+                    if (messages.length > 0 && msg.id === messages[0].id) {
+                        console.log('[CHAT DEBUG] First message check:', {
+                            msgUserId: msg.user_id,
+                            currentUserId: user?.id,
+                            isOwnMessage,
+                            userName: msg.user_name,
+                            currentUserName: user?.name
+                        });
+                    }
+                    return (
+                        <div
+                            key={msg.id}
+                            className={`message-item ${isOwnMessage ? 'own-message' : ''}`}
+                            onContextMenu={(e) => {
+                                e.preventDefault();
                                 setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id);
-                            }, 500); // 500ms long press
-                        }}
-                        onTouchEnd={() => {
-                            clearTimeout(window.longPressTimer);
-                        }}
-                    >
-                        <div className="message-avatar">
-                            {msg.avatar_url ? (
-                                <img src={msg.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '12px' }} />
-                            ) : (
-                                msg.user_name?.[0]?.toUpperCase() || '?'
-                            )}
-                        </div>
-                        <div className="message-content">
-                            <div className="message-header">
-                                <span className="username">{msg.user_name}</span>
-                                {Number(msg.user_id) !== Number(user?.id) && (
-                                    <span className="timestamp">
-                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        {msg.edited_at && <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem', color: 'var(--text-tertiary)' }}>(editado)</span>}
-                                    </span>
+                            }}
+                            // Long press logic for mobile
+                            onTouchStart={() => {
+                                window.longPressTimer = setTimeout(() => {
+                                    setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id);
+                                }, 500); // 500ms long press
+                            }}
+                            onTouchEnd={() => {
+                                clearTimeout(window.longPressTimer);
+                            }}
+                        >
+                            <div className="message-avatar">
+                                {msg.avatar_url ? (
+                                    <img src={msg.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '12px' }} />
+                                ) : (
+                                    msg.user_name?.[0]?.toUpperCase() || '?'
                                 )}
                             </div>
-                            {msg.content && <div className="message-body">{msg.content}</div>}
-                            {Number(msg.user_id) === Number(user?.id) && (
-                                <span className="timestamp" style={{ alignSelf: 'flex-end', marginTop: '0.25rem' }}>
-                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    {msg.edited_at && <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem' }}>(editado)</span>}
-                                </span>
-                            )}
-                            {renderAttachment(msg)}
-
-                            {/* Reactions */}
-                            {msg.reactions && msg.reactions.length > 0 && (
-                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                                    {msg.reactions.map((reaction, idx) => (
-                                        <button
-                                            key={idx}
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // Prevent toggling menu
-                                                handleReaction(msg.id, reaction.emoji);
-                                            }}
-                                            style={{
-                                                padding: '0.25rem 0.5rem',
-                                                background: reaction.hasReacted ? 'var(--zorah-primary)' : 'var(--zorah-surface)',
-                                                border: `1px solid ${reaction.hasReacted ? 'var(--zorah-primary)' : 'var(--zorah-border)'}`,
-                                                borderRadius: 'var(--radius-sm)',
-                                                cursor: 'pointer',
-                                                fontSize: '0.875rem',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.25rem',
-                                                transition: 'all 0.2s'
-                                            }}
-                                        >
-                                            <span>{reaction.emoji}</span>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{reaction.count}</span>
-                                        </button>
-                                    ))}
+                            <div className="message-content">
+                                <div className="message-header">
+                                    <span className="username">{msg.user_name}</span>
+                                    {Number(msg.user_id) !== Number(user?.id) && (
+                                        <span className="timestamp">
+                                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {msg.edited_at && <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem', color: 'var(--text-tertiary)' }}>(editado)</span>}
+                                        </span>
+                                    )}
                                 </div>
-                            )}
+                                {msg.content && <div className="message-body">{msg.content}</div>}
+                                {Number(msg.user_id) === Number(user?.id) && (
+                                    <span className="timestamp" style={{ alignSelf: 'flex-end', marginTop: '0.25rem' }}>
+                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        {msg.edited_at && <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem' }}>(editado)</span>}
+                                    </span>
+                                )}
+                                {renderAttachment(msg)}
 
-                            {/* Context Menu Emoji Picker */}
-                            {showEmojiPicker === msg.id && (
-                                <div style={{
-                                    position: 'absolute',
-                                    bottom: '100%',
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                    background: 'var(--zorah-surface)',
-                                    border: '1px solid var(--zorah-border)',
-                                    borderRadius: 'var(--radius-md)',
-                                    padding: '0.5rem',
-                                    display: 'flex',
-                                    gap: '0.5rem',
-                                    marginBottom: '0.5rem',
-                                    boxShadow: 'var(--shadow-lg)',
-                                    zIndex: 100
-                                }}>
-                                    {EMOJI_PICKER.map(emoji => (
-                                        <button
-                                            key={emoji}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleReaction(msg.id, emoji);
-                                            }}
-                                            style={{
-                                                padding: '0.5rem',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                cursor: 'pointer',
-                                                fontSize: '1.5rem',
-                                                borderRadius: 'var(--radius-sm)',
-                                                transition: 'background 0.2s'
-                                            }}
-                                            onMouseEnter={e => e.currentTarget.style.background = 'var(--zorah-surface-hover)'}
-                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                        >
-                                            {emoji}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                                {/* Reactions */}
+                                {msg.reactions && msg.reactions.length > 0 && (
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                                        {msg.reactions.map((reaction, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Prevent toggling menu
+                                                    handleReaction(msg.id, reaction.emoji);
+                                                }}
+                                                style={{
+                                                    padding: '0.25rem 0.5rem',
+                                                    background: reaction.hasReacted ? 'var(--zorah-primary)' : 'var(--zorah-surface)',
+                                                    border: `1px solid ${reaction.hasReacted ? 'var(--zorah-primary)' : 'var(--zorah-border)'}`,
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.875rem',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.25rem',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                <span>{reaction.emoji}</span>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{reaction.count}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Context Menu Emoji Picker */}
+                                {showEmojiPicker === msg.id && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: '100%',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        background: 'var(--zorah-surface)',
+                                        border: '1px solid var(--zorah-border)',
+                                        borderRadius: 'var(--radius-md)',
+                                        padding: '0.5rem',
+                                        display: 'flex',
+                                        gap: '0.5rem',
+                                        marginBottom: '0.5rem',
+                                        boxShadow: 'var(--shadow-lg)',
+                                        zIndex: 100
+                                    }}>
+                                        {EMOJI_PICKER.map(emoji => (
+                                            <button
+                                                key={emoji}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleReaction(msg.id, emoji);
+                                                }}
+                                                style={{
+                                                    padding: '0.5rem',
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    fontSize: '1.5rem',
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    transition: 'background 0.2s'
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.background = 'var(--zorah-surface-hover)'}
+                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                            >
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 <div ref={endRef} />
             </div>

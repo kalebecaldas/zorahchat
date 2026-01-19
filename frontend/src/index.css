@@ -337,7 +337,7 @@ body {
   /* Destaque sutil no nome */
 }
 
-/* Own messages - align to the right with different background */
+/* Own messages - align to the right with different background [v2.0 - UPDATED] */
 .message-item.own-message {
   flex-direction: row-reverse;
 }
