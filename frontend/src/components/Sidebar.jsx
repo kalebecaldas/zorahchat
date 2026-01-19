@@ -20,7 +20,7 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
     const [unreadCounts, setUnreadCounts] = useState({});
     const [selectedChannel, setSelectedChannel] = useState(null);
     const [showChannelSettings, setShowChannelSettings] = useState(false);
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const { socket } = useSocket();
     const navigate = useNavigate();
     const [userStatus, setUserStatus] = useState(user?.status || 'online');
@@ -302,7 +302,7 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
 
     const handleStatusChange = async (newStatus) => {
         const token = localStorage.getItem('token');
-        await fetch('/api/users/status', {
+        const res = await fetch('/api/users/status', {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -310,7 +310,13 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
             },
             body: JSON.stringify({ status: newStatus })
         });
-        setUserStatus(newStatus);
+
+        if (res.ok) {
+            const updatedUser = await res.json();
+            setUserStatus(newStatus);
+            // Update the user context so status persists across refreshes
+            updateUser({ status: newStatus });
+        }
         setShowStatusMenu(false);
     };
 

@@ -67,11 +67,16 @@ export function AuthProvider({ children }) {
         setUser(null);
     };
 
+    const updateUser = (updates) => {
+        setUser(prev => prev ? { ...prev, ...updates } : null);
+    };
+
     const value = {
         user,
         login,
         register,
         logout,
+        updateUser,
         loading
     };
 
