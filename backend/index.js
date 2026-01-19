@@ -106,9 +106,13 @@ io.on('connection', async (socket) => {
     });
     const db = getDb();
 
-    // Set user to online on connect
+    // Get current user status (don't force online - preserve away/busy)
     try {
-        await db.run('UPDATE users SET status = ? WHERE id = ?', ['online', userId]);
+        const currentUser = await db.get('SELECT status FROM users WHERE id = ?', [userId]);
+        const userStatus = currentUser?.status || 'online';
+
+        // Only emit status change, don't override user's chosen status
+        console.log(`[SOCKET] User ${userId} connected with status: ${userStatus}`);
 
         // Get all connected sockets for debugging
         const allSockets = await io.fetchSockets();
@@ -119,8 +123,8 @@ io.on('connection', async (socket) => {
             uniqueUserIds: [...new Set(connectedUserIds)]
         });
 
-        console.log(`[SOCKET] Emitting user-status-change for user ${userId} to status: online`);
-        io.emit('user-status-change', { userId, status: 'online' });
+        console.log(`[SOCKET] Emitting user-status-change for user ${userId} to status: ${userStatus}`);
+        io.emit('user-status-change', { userId, status: userStatus });
         console.log(`[SOCKET] ✓ user-status-change event emitted to all clients`);
     } catch (err) {
         console.error('Error setting user online:', err);
