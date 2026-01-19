@@ -12,6 +12,7 @@ export default function WorkspaceSelect() {
     const [searchResults, setSearchResults] = useState([]);
     const [message, setMessage] = useState('');
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [loading, setLoading] = useState(true);
     const { logout, user } = useAuth();
     const navigate = useNavigate();
     const menuRef = useRef(null);
@@ -32,14 +33,18 @@ export default function WorkspaceSelect() {
     }, [user]);
 
     const fetchWorkspaces = async () => {
+        setLoading(true);
         const token = localStorage.getItem('token');
         const res = await fetch('/api/workspaces', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
             const data = await res.json();
+            // Simular delay para mostrar loading (remover em produção se desejar)
+            await new Promise(resolve => setTimeout(resolve, 800));
             setWorkspaces(data);
         }
+        setLoading(false);
     };
 
     const fetchMyRequests = async () => {
@@ -542,7 +547,61 @@ export default function WorkspaceSelect() {
                     gap: '1.5rem',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))'
                 }}>
-                    {workspaces.length === 0 && !showCreate && !showSearch && (
+                    {loading ? (
+                        // Skeleton Loading Cards
+                        [1, 2, 3].map((i) => (
+                            <div
+                                key={`skeleton-${i}`}
+                                style={{
+                                    ...cardStyle,
+                                    padding: '1.75rem',
+                                    animation: `pulse 1.5s ease-in-out ${i * 0.1}s infinite`,
+                                    opacity: 0.6
+                                }}
+                            >
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'start',
+                                    marginBottom: '1.5rem'
+                                }}>
+                                    <div style={{
+                                        width: '56px',
+                                        height: '56px',
+                                        borderRadius: '12px',
+                                        background: 'rgba(99, 102, 241, 0.2)',
+                                    }} />
+                                    <div style={{
+                                        width: '80px',
+                                        height: '24px',
+                                        borderRadius: '20px',
+                                        background: 'rgba(148, 163, 184, 0.2)',
+                                    }} />
+                                </div>
+
+                                <div style={{
+                                    width: '70%',
+                                    height: '24px',
+                                    borderRadius: '4px',
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    marginBottom: '0.5rem'
+                                }} />
+                                <div style={{
+                                    width: '100%',
+                                    height: '16px',
+                                    borderRadius: '4px',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    marginBottom: '0.5rem'
+                                }} />
+                                <div style={{
+                                    width: '85%',
+                                    height: '16px',
+                                    borderRadius: '4px',
+                                    background: 'rgba(255, 255, 255, 0.05)'
+                                }} />
+                            </div>
+                        ))
+                    ) : workspaces.length === 0 && !showCreate && !showSearch ? (
                         <div style={{
                             gridColumn: '1 / -1',
                             ...cardStyle,
@@ -555,92 +614,93 @@ export default function WorkspaceSelect() {
                             <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Nenhum workspace ainda</h3>
                             <p style={{ color: '#94a3b8' }}>Comece criando um novo workspace ou procure por um existente.</p>
                         </div>
-                    )}
-
-                    {workspaces.map(ws => (
-                        <div
-                            key={ws.id}
-                            onClick={() => navigate(`/client/${ws.id}`)}
-                            style={{
-                                ...cardStyle,
-                                padding: '1.75rem',
-                                cursor: 'pointer',
-                                position: 'relative'
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.transform = 'translateY(-4px)';
-                                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1)';
-                                e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                            }}
-                        >
-                            <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'start',
-                                marginBottom: '1.5rem'
-                            }}>
+                    ) : (
+                        workspaces.map((ws, index) => (
+                            <div
+                                key={ws.id}
+                                onClick={() => navigate(`/client/${ws.id}`)}
+                                style={{
+                                    ...cardStyle,
+                                    padding: '1.75rem',
+                                    cursor: 'pointer',
+                                    position: 'relative',
+                                    animation: `slideInUp 0.4s ease ${index * 0.1}s both`
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1)';
+                                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                }}
+                            >
                                 <div style={{
-                                    width: '56px',
-                                    height: '56px',
-                                    borderRadius: '12px',
-                                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'start',
+                                    marginBottom: '1.5rem'
+                                }}>
+                                    <div style={{
+                                        width: '56px',
+                                        height: '56px',
+                                        borderRadius: '12px',
+                                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '1.75rem',
+                                        fontWeight: '700',
+                                        color: 'white',
+                                        boxShadow: '0 4px 6px rgba(99, 102, 241, 0.25)'
+                                    }}>
+                                        {ws.name[0].toUpperCase()}
+                                    </div>
+                                    <span style={{
+                                        fontSize: '0.75rem',
+                                        padding: '0.35rem 0.75rem',
+                                        borderRadius: '20px',
+                                        background: ws.role === 'admin' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(148, 163, 184, 0.1)',
+                                        color: ws.role === 'admin' ? '#818cf8' : '#94a3b8',
+                                        fontWeight: '600',
+                                        letterSpacing: '0.02em'
+                                    }}>
+                                        {ws.role === 'admin' ? '👑 ADMIN' : '👤 MEMBRO'}
+                                    </span>
+                                </div>
+
+                                <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem', fontWeight: '700' }}>{ws.name}</h3>
+                                <p style={{
+                                    color: '#94a3b8',
+                                    fontSize: '0.9rem',
+                                    lineHeight: '1.5',
+                                    marginBottom: '0',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: '2',
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                }}>
+                                    {ws.description || "Sem descrição disponível."}
+                                </p>
+
+                                <div style={{
+                                    marginTop: '1.5rem',
+                                    paddingTop: '1rem',
+                                    borderTop: '1px solid rgba(255,255,255,0.05)',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '1.75rem',
-                                    fontWeight: '700',
-                                    color: 'white',
-                                    boxShadow: '0 4px 6px rgba(99, 102, 241, 0.25)'
+                                    justifyContent: 'space-between',
+                                    fontSize: '0.85rem',
+                                    color: '#64748b'
                                 }}>
-                                    {ws.name[0].toUpperCase()}
+                                    <span>Clique para entrar</span>
+                                    <span style={{ fontSize: '1.1rem' }}>→</span>
                                 </div>
-                                <span style={{
-                                    fontSize: '0.75rem',
-                                    padding: '0.35rem 0.75rem',
-                                    borderRadius: '20px',
-                                    background: ws.role === 'admin' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(148, 163, 184, 0.1)',
-                                    color: ws.role === 'admin' ? '#818cf8' : '#94a3b8',
-                                    fontWeight: '600',
-                                    letterSpacing: '0.02em'
-                                }}>
-                                    {ws.role === 'admin' ? '👑 ADMIN' : '👤 MEMBRO'}
-                                </span>
                             </div>
-
-                            <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem', fontWeight: '700' }}>{ws.name}</h3>
-                            <p style={{
-                                color: '#94a3b8',
-                                fontSize: '0.9rem',
-                                lineHeight: '1.5',
-                                marginBottom: '0',
-                                display: '-webkit-box',
-                                WebkitLineClamp: '2',
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden'
-                            }}>
-                                {ws.description || "Sem descrição disponível."}
-                            </p>
-
-                            <div style={{
-                                marginTop: '1.5rem',
-                                paddingTop: '1rem',
-                                borderTop: '1px solid rgba(255,255,255,0.05)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                fontSize: '0.85rem',
-                                color: '#64748b'
-                            }}>
-                                <span>Clique para entrar</span>
-                                <span style={{ fontSize: '1.1rem' }}>→</span>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
             </div>
 
@@ -652,6 +712,20 @@ export default function WorkspaceSelect() {
                 @keyframes slideIn {
                     from { opacity: 0; transform: translateX(-10px); }
                     to { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes slideInUp {
+                    from { 
+                        opacity: 0; 
+                        transform: translateY(30px); 
+                    }
+                    to { 
+                        opacity: 1; 
+                        transform: translateY(0); 
+                    }
+                }
+                @keyframes pulse {
+                    0%, 100% { opacity: 0.6; }
+                    50% { opacity: 0.3; }
                 }
             `}</style>
         </div>
