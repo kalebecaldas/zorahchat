@@ -129,9 +129,10 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
             }
         };
 
-        // Fetch messages
+        // Fetch messages with AbortSignal
+        const abortController = new AbortController();
         console.log('[CHAT] Fetching messages for:', { channelId, dmId });
-        fetchMessages();
+        fetchMessages(abortController.signal);
 
         // Fetch channel members for mentions (only for channels, not DMs)
         if (channelId && !dmId) {
@@ -242,6 +243,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
         return () => {
             console.log('[SOCKET] Cleaning up room and listeners');
+            abortController.abort(); // 🚀 Cancel pending fetches
             clearInterval(rejoinInterval);
             socket.off('connect', handleReconnect);
             socket.off('new-message', handleNewMessage);
@@ -328,7 +330,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         }
     };
 
-    const fetchMessages = async () => {
+    const fetchMessages = async (signal) => {
         const token = localStorage.getItem('token');
         setIsLoadingMessages(true);
 
@@ -337,22 +339,26 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                 // For DMs, fetch messages and DM info in parallel
                 const [messagesRes, dmInfoRes] = await Promise.all([
                     fetch(`/api/dm/${dmId}/messages`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        signal
                     }),
                     fetch(`/api/dm/${workspaceId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        signal
                     })
                 ]);
 
+                if (signal?.aborted) return;
+
                 if (messagesRes.ok) {
                     const data = await messagesRes.json();
-                    setMessages(data);
+                    if (!signal?.aborted) setMessages(data);
                 }
 
                 if (dmInfoRes.ok) {
                     const dms = await dmInfoRes.json();
                     const currentDm = dms.find(d => d.id == dmId);
-                    if (currentDm) {
+                    if (currentDm && !signal?.aborted) {
                         const dmUserData = {
                             name: currentDm.other_user_name,
                             avatar: currentDm.other_user_avatar,
@@ -364,32 +370,41 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     }
                 }
             } else {
-                // For channels, just fetch messages
-                // Channel name will be set from Sidebar props or route
+                // For channels:
+
+                // 1. Fetch messages
                 const messagesRes = await fetch(`/api/messages/${channelId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    signal
                 });
+
+                if (signal?.aborted) return;
 
                 if (messagesRes.ok) {
                     const data = await messagesRes.json();
-                    setMessages(data);
+                    if (!signal?.aborted) setMessages(data);
                 }
 
-                // Fetch channel info using optimized endpoint
+                // 2. Fetch channel info to confirm name (as backup/sync)
+                // We use Promise.allSettled to not block messages if this fails/is slow
+                // Or just separate fetch.
                 const chRes = await fetch(`/api/channels/${workspaceId}/channel/${channelId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    signal
                 });
-                if (chRes.ok) {
+
+                if (chRes.ok && !signal?.aborted) {
                     const channel = await chRes.json();
                     setChannelName(channel.name);
-                    // Save to cache for instant display next time
                     channelCacheRef.current[channelId] = channel.name;
                 }
             }
         } catch (error) {
-            console.error('[CHAT] Error fetching messages:', error);
+            if (error.name !== 'AbortError') {
+                console.error('[CHAT] Error fetching messages:', error);
+            }
         } finally {
-            setIsLoadingMessages(false);
+            if (!signal?.aborted) setIsLoadingMessages(false);
         }
     };
 
