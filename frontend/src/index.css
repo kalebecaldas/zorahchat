@@ -337,6 +337,30 @@ body {
   /* Destaque sutil no nome */
 }
 
+/* Own messages - align to the right with different background */
+.message-item.own-message {
+  flex-direction: row-reverse;
+}
+
+.message-item.own-message .message-content {
+  background: var(--zorah-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 12px 12px 4px 12px;
+  max-width: 70%;
+}
+
+.message-item.own-message .message-body {
+  color: #ffffff;
+}
+
+.message-item.own-message .username {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.message-item.own-message .timestamp {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 /* --- INPUT AREA (Clean & Modern) --- */
 .chat-input-area {
   padding: 1.5rem;
@@ -523,359 +547,542 @@ body {
   }
 
   .chat-input-area {
+    flex-shrink: 0;
+    margin-top: auto;
+  }
+
+  .chat-input-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .chat-input-container:focus-within {
+    border-color: var(--text-dim);
+    /* Mais sutil que primary */
+    border-color: var(--primary);
+    background: var(--bg-app);
+    /* Ligeiro contraste reverso ou manter surface? Manter surface é melhor. */
+    background: var(--bg-surface);
+    box-shadow: 0 0 0 1px var(--primary), 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .chat-input {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-family: inherit;
+    width: 100%;
+    outline: none;
+    min-height: 24px;
+    resize: none;
+    margin-bottom: 0.5rem;
+  }
+
+  .chat-input::placeholder {
+    color: var(--text-dim);
+  }
+
+  /* Input Actions Toolbar (if any) */
+  .input-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Send Button */
+  .send-button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.35rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .send-button:hover {
+    opacity: 0.9;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--bg-surface-hover);
+    border: 3px solid var(--bg-app);
+    /* Cria efeito de padding */
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-dim);
+  }
+
+  /* --- LOGIN / AUTH --- */
+  .auth-container {
+    display: flex;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-app);
+  }
+
+  .auth-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .logo-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+  }
+
+  /* Auth Inputs fix */
+  .auth-box input[type="email"],
+  .auth-box input[type="password"],
+  .auth-box input[type="text"],
+  .form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--bg-app);
+    /* Darker background inside surface */
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    outline: none;
+  }
+
+  .auth-box input:focus,
+  .form-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-faint);
+  }
+
+  .auth-box label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-hover);
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .sidebar {
+      position: fixed;
+      height: 100%;
+      transform: translateX(-100%);
+      box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar.mobile-open {
+      transform: translateX(0);
+    }
+
+    .chat-input-area {
+      padding: 1rem;
+    }
+  }
+
+  /* --- SIDEBAR DROPDOWN (Fixed Position) --- */
+  .workspace-dropdown {
+    position: absolute;
+    top: 54px;
+    /* Fixo para evitar pular para baixo demais */
+    left: 8px;
+    right: 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    /* Sombra mais discreta */
+    z-index: 1000;
+    padding: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .dropdown-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 0.5rem 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .workspace-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .workspace-item:hover,
+  .workspace-item.active {
+    background: var(--bg-surface-hover);
+  }
+
+  .workspace-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .workspace-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .workspace-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .workspace-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 0.5rem 0;
+  }
+
+  .create-workspace-btn {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--primary);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+
+  .create-workspace-btn:hover {
+    background: var(--bg-surface-hover);
+  }
+
+  /* --- ANIMATIONS (Loading & Typing) --- */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-subtle);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes typing {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  .typing-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    display: inline-block;
+    margin: 0 1px;
+    animation: typing 1s infinite;
+  }
+
+  .typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  /* Skeleton Loading */
+  @keyframes pulse {
+
+    0%,
+    100% {
+      opacity: 0.5;
+    }
+
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  .skeleton-pulse {
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    background: var(--bg-surface-hover);
+    border-radius: 4px;
+  }
+
+  /* --- BADGES --- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+
+  .badge-admin {
+    background: rgba(99, 102, 241, 0.1);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+  }
+
+  .badge-moderator {
+    background: rgba(168, 85, 247, 0.1);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .badge-member {
+    background: var(--bg-surface-hover);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .badge-owner {
+    background: transparent;
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  /* Page Headers */
+  .page-container {
+    min-height: 100vh;
+    background: var(--bg-app);
+    padding: 3rem 2rem;
+  }
+
+  .page-content {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .page-subtitle {
+    color: var(--text-secondary);
+    font-size: 1rem;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    transition: color 0.15s;
+  }
+
+  .back-link:hover {
+    color: var(--text-main);
+  }
+
+  /* List Items */
+  .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 1rem;
-  }
-}
-
-/* --- SIDEBAR DROPDOWN (Fixed Position) --- */
-.workspace-dropdown {
-  position: absolute;
-  top: 54px;
-  /* Fixo para evitar pular para baixo demais */
-  left: 8px;
-  right: 8px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  /* Sombra mais discreta */
-  z-index: 1000;
-  padding: 0.5rem;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.dropdown-section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  padding: 0.5rem 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.workspace-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-main);
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.workspace-item:hover,
-.workspace-item.active {
-  background: var(--bg-surface-hover);
-}
-
-.workspace-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: white;
-  flex-shrink: 0;
-}
-
-.workspace-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.workspace-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.workspace-role {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.dropdown-divider {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: 0.5rem 0;
-}
-
-.create-workspace-btn {
-  width: 100%;
-  padding: 0.6rem 0.75rem;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--primary);
-  text-align: left;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: background 0.15s;
-}
-
-.create-workspace-btn:hover {
-  background: var(--bg-surface-hover);
-}
-
-/* --- ANIMATIONS (Loading & Typing) --- */
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--border-subtle);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes typing {
-
-  0%,
-  100% {
-    transform: translateY(0);
+    background: var(--bg-app);
+    /* Nested inside surface usually */
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
   }
 
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-.typing-dot {
-  width: 5px;
-  height: 5px;
-  background: var(--text-dim);
-  border-radius: 50%;
-  display: inline-block;
-  margin: 0 1px;
-  animation: typing 1s infinite;
-}
-
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-/* Skeleton Loading */
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 0.5;
+  .list-item:hover {
+    border-color: var(--border-strong);
   }
 
-  50% {
-    opacity: 0.8;
+  .list-item-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
   }
-}
 
-.skeleton-pulse {
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  background: var(--bg-surface-hover);
-  border-radius: 4px;
-}
+  .list-item-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+  }
 
-/* --- BADGES --- */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.6rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
+  .list-item-info h4 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin: 0 0 0.2rem 0;
+    color: var(--text-main);
+  }
 
-.badge-admin {
-  background: rgba(99, 102, 241, 0.1);
-  color: #818cf8;
-  border: 1px solid rgba(99, 102, 241, 0.2);
-}
+  .list-item-info p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
 
-.badge-moderator {
-  background: rgba(168, 85, 247, 0.1);
-  color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.2);
-}
+  .card-section {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
 
-.badge-member {
-  background: var(--bg-surface-hover);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-}
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-main);
+  }
 
-.badge-owner {
-  background: transparent;
-  color: var(--text-tertiary);
-  border: 1px solid var(--border-subtle);
-}
+  .select-role {
+    padding: 0.4rem 2rem 0.4rem 0.6rem;
+    /* Extra padding for arrow if we styled it properly, usually standard select is ok */
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+  }
 
-/* Page Headers */
-.page-container {
-  min-height: 100vh;
-  background: var(--bg-app);
-  padding: 3rem 2rem;
-}
+  .select-role:focus {
+    border-color: var(--primary);
+    color: var(--text-main);
+  }
 
-.page-content {
-  max-width: 900px;
-  margin: 0 auto;
-}
+  .btn-danger-ghost {
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
 
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.02em;
-}
-
-.page-subtitle {
-  color: var(--text-secondary);
-  font-size: 1rem;
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-  transition: color 0.15s;
-}
-
-.back-link:hover {
-  color: var(--text-main);
-}
-
-/* List Items */
-.list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-  background: var(--bg-app);
-  /* Nested inside surface usually */
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  margin-bottom: 0.75rem;
-  transition: all 0.2s;
-}
-
-.list-item:hover {
-  border-color: var(--border-strong);
-}
-
-.list-item-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1;
-}
-
-.list-item-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-}
-
-.list-item-info h4 {
-  font-size: 0.95rem;
-  font-weight: 500;
-  margin: 0 0 0.2rem 0;
-  color: var(--text-main);
-}
-
-.list-item-info p {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.card-section {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.card-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: var(--text-main);
-}
-
-.select-role {
-  padding: 0.4rem 2rem 0.4rem 0.6rem;
-  /* Extra padding for arrow if we styled it properly, usually standard select is ok */
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  cursor: pointer;
-  outline: none;
-}
-
-.select-role:focus {
-  border-color: var(--primary);
-  color: var(--text-main);
-}
-
-.btn-danger-ghost {
-  padding: 0.4rem 0.8rem;
-  background: transparent;
-  color: #ef4444;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-
-.btn-danger-ghost:hover {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.2);
+  .btn-danger-ghost:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
 }
