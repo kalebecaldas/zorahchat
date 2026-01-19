@@ -26,12 +26,12 @@ router.post('/create', authMiddleware, async (req, res) => {
                 'INSERT INTO direct_messages (workspace_id, user1_id, user2_id) VALUES (?, ?, ?)',
                 [workspaceId, Math.min(req.userId, userId), Math.max(req.userId, userId)]
             );
-            dm = await db.get('SELECT * FROM direct_messages WHERE id = ?', result.lastID);
+            dm = await db.get('SELECT * FROM direct_messages WHERE id = ?', [result.lastID]);
         }
 
         // Get other user info
         const otherUserId = dm.user1_id === req.userId ? dm.user2_id : dm.user1_id;
-        const otherUser = await db.get('SELECT id, name, avatar_url, status FROM users WHERE id = ?', otherUserId);
+        const otherUser = await db.get('SELECT id, name, avatar_url, status FROM users WHERE id = ?', [otherUserId]);
 
         res.json({ ...dm, otherUser });
     } catch (error) {
@@ -99,7 +99,7 @@ router.get('/:dmId/messages', authMiddleware, async (req, res) => {
             JOIN users u ON m.user_id = u.id
             WHERE m.dm_id = ?
             ORDER BY m.created_at ASC
-        `, dmId);
+        `, [dmId]);
 
         // Update read receipt for DM when fetching messages
         if (messages.length > 0) {
@@ -150,7 +150,7 @@ router.post('/:dmId/messages', authMiddleware, async (req, res) => {
             FROM messages m
             JOIN users u ON m.user_id = u.id
             WHERE m.id = ?
-        `, result.lastID);
+        `, [result.lastID]);
 
         // Determine recipient (the other user in the DM)
         const recipientId = dm.user1_id === req.userId ? dm.user2_id : dm.user1_id;
