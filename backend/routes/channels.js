@@ -141,7 +141,7 @@ router.get('/:channelId/members', authMiddleware, async (req, res) => {
         }
 
         const members = await db.all(`
-            SELECT u.id, u.name, u.username, u.email, u.avatar_url, cm.added_at, cm.added_by
+            SELECT u.id, u.name, u.email, u.avatar_url, cm.added_at, cm.added_by
             FROM channel_members cm
             INNER JOIN users u ON cm.user_id = u.id
             WHERE cm.channel_id = ?

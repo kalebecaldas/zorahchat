@@ -70,7 +70,7 @@ router.get('/:channelId', authMiddleware, async (req, res) => {
                 DELETE FROM read_receipts 
                 WHERE user_id = ? AND channel_id = ? AND dm_id IS NULL
             `, [req.userId, channelId]);
-            
+
             // Insert new receipt
             await db.run(`
                 INSERT INTO read_receipts (user_id, channel_id, dm_id, last_read_message_id, last_read_at)
@@ -123,7 +123,7 @@ router.post('/', authMiddleware, async (req, res) => {
             if (mentionedUsernames.length > 0) {
                 // Get user IDs (including @channel and @here special mentions)
                 const mentionedUserIds = await MentionService.getUserIdsFromMentions(
-                    mentionedUsernames, 
+                    mentionedUsernames,
                     channel.workspace_id,
                     channelId
                 );
@@ -165,7 +165,7 @@ router.post('/', authMiddleware, async (req, res) => {
                             io.to(`user-${userId}`).emit('new-notification', notification);
                         }
                     }
-                    
+
                     // Log special mentions
                     const hasChannelMention = mentionedUsernames.includes('channel') || mentionedUsernames.includes('here');
                     if (hasChannelMention) {
@@ -181,25 +181,25 @@ router.post('/', authMiddleware, async (req, res) => {
         if (io) {
             // Get all connected sockets
             const allSockets = await io.fetchSockets();
-            
+
             // Get all members of the workspace from database
             const workspaceMembers = await db.all(
                 'SELECT user_id FROM workspace_users WHERE workspace_id = ?',
                 [channel.workspace_id]
             );
             const workspaceMemberIds = workspaceMembers.map(m => m.user_id);
-            
+
             // Find all connected sockets for workspace members
             const workspaceSockets = allSockets.filter(s => workspaceMemberIds.includes(s.userId));
             const recipientUserIds = workspaceSockets.map(s => s.userId);
-            
+
             // Get detailed info about all connected sockets
             const connectedUsersInfo = allSockets.map(s => ({
                 userId: s.userId,
                 socketId: s.id,
                 rooms: Array.from(s.rooms || [])
             }));
-            
+
             const missingMembers = workspaceMemberIds.filter(id => !recipientUserIds.includes(id));
             console.log(`[MESSAGES] Broadcasting new-message for channel-${channelId}:`, {
                 messageId: message.id,
@@ -213,22 +213,22 @@ router.post('/', authMiddleware, async (req, res) => {
                 totalConnected: allSockets.length,
                 detailedConnections: connectedUsersInfo
             });
-            
+
             if (missingMembers.length > 0) {
                 console.error(`[MESSAGES] CRITICAL: Missing ${missingMembers.length} workspace member(s) from socket connection:`, missingMembers);
                 console.error(`[MESSAGES] These users will NOT receive real-time messages! They need to connect their socket.`);
             }
-            
+
             if (recipientUserIds.length < workspaceMemberIds.length) {
                 const missing = workspaceMemberIds.filter(id => !recipientUserIds.includes(id));
                 console.warn(`[MESSAGES] WARNING: Some workspace members are NOT connected:`, missing);
                 console.warn(`[MESSAGES] They will NOT receive messages in real-time!`);
             }
-            
+
             // Create notifications for all workspace members (except sender)
             const channelInfo = await db.get('SELECT name FROM channels WHERE id = ?', [channelId]);
             const recipients = workspaceMemberIds.filter(id => id !== req.userId);
-            
+
             // Create and send notifications for all recipients
             const notifications = [];
             for (const recipientId of recipients) {
@@ -254,19 +254,19 @@ router.post('/', authMiddleware, async (req, res) => {
                     console.error(`[MESSAGES] Failed to create notification for user ${recipientId}:`, err);
                 }
             }
-            
+
             // Send directly to each workspace member's socket (most reliable method)
-            console.log(`[MESSAGES] Sending to ${workspaceSockets.length} connected workspace members:`, 
+            console.log(`[MESSAGES] Sending to ${workspaceSockets.length} connected workspace members:`,
                 workspaceSockets.map(s => ({ userId: s.userId, socketId: s.id }))
             );
             console.log(`[MESSAGES] Notifications created:`, notifications.map(n => ({ userId: n.userId, type: n.notification.type })));
-            
+
             let sentCount = 0;
             let notificationCount = 0;
             for (const socket of workspaceSockets) {
                 try {
                     socket.emit('new-message', message);
-                    
+
                     // Send notification if user is not the sender
                     if (socket.userId !== req.userId) {
                         const notification = notifications.find(n => n.userId === socket.userId);
@@ -285,26 +285,26 @@ router.post('/', authMiddleware, async (req, res) => {
                             console.warn(`[MESSAGES] ⚠ No notification found for user ${socket.userId}`);
                         }
                     }
-                    
+
                     sentCount++;
                     console.log(`[MESSAGES] ✓ Sent message to user ${socket.userId} (socket ${socket.id})`);
                 } catch (err) {
                     console.error(`[MESSAGES] ✗ Failed to send to user ${socket.userId}:`, err.message);
                 }
             }
-            
+
             console.log(`[MESSAGES] Direct send complete: ${sentCount}/${workspaceSockets.length} messages, ${notificationCount}/${notifications.length} notifications`);
-            
+
             // Also emit to rooms as backup (in case someone joins between message send and room join)
             io.to(`channel-${channelId}`).emit('new-message', message);
             io.to(`workspace-${channel.workspace_id}`).emit('new-message', message);
-            
+
             // Emit notifications to rooms as well (for users that might not be directly connected yet)
             for (const { userId, notification } of notifications) {
                 io.to(`user-${userId}`).emit('new-notification', notification);
                 console.log(`[MESSAGES] ✓ Emitted notification to room user-${userId}`);
             }
-            
+
             console.log(`[MESSAGES] Also emitted to channel-${channelId} and workspace-${channel.workspace_id} rooms`);
         }
 
@@ -402,7 +402,7 @@ router.get('/unread/:workspaceId', authMiddleware, async (req, res) => {
             FROM channels c
             WHERE c.workspace_id = ?
         `, [req.userId, req.userId, workspaceId]);
-        
+
         console.log('[UNREAD] Channel unread counts:', channels.map(c => ({
             id: c.id,
             name: c.name,
@@ -429,7 +429,7 @@ router.get('/unread/:workspaceId', authMiddleware, async (req, res) => {
             WHERE dm.workspace_id = ?
               AND (dm.user1_id = ? OR dm.user2_id = ?)
         `, [req.userId, req.userId, req.userId, workspaceId, req.userId, req.userId]);
-        
+
         console.log('[UNREAD] DM unread counts:', dms.map(dm => ({
             id: dm.id,
             unread_count: dm.unread_count,
@@ -480,19 +480,19 @@ router.post('/channels/:channelId/read', authMiddleware, async (req, res) => {
             channelId: channelId,
             lastMessageId: lastMessage?.id || null
         });
-        
+
         // First, delete any existing receipt for this user+channel to avoid NULL issues
         await db.run(`
             DELETE FROM read_receipts 
             WHERE user_id = ? AND channel_id = ? AND dm_id IS NULL
         `, [req.userId, channelId]);
-        
+
         // Then insert new receipt
         await db.run(`
             INSERT INTO read_receipts (user_id, channel_id, dm_id, last_read_message_id, last_read_at)
             VALUES (?, ?, NULL, ?, CURRENT_TIMESTAMP)
         `, [req.userId, channelId, lastMessage?.id || null]);
-        
+
         // Verify it was saved
         const saved = await db.get(`
             SELECT * FROM read_receipts 

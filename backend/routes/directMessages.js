@@ -94,7 +94,7 @@ router.get('/:dmId/messages', authMiddleware, async (req, res) => {
         }
 
         const messages = await db.all(`
-            SELECT m.*, u.name as user_name, u.username, u.avatar_url 
+            SELECT m.*, u.name as user_name, u.avatar_url 
             FROM messages m
             JOIN users u ON m.user_id = u.id
             WHERE m.dm_id = ?
@@ -108,7 +108,7 @@ router.get('/:dmId/messages', authMiddleware, async (req, res) => {
                 DELETE FROM read_receipts 
                 WHERE user_id = ? AND dm_id = ? AND channel_id IS NULL
             `, [req.userId, dmId]);
-            
+
             // Insert new receipt
             await db.run(`
                 INSERT INTO read_receipts (user_id, channel_id, dm_id, last_read_message_id, last_read_at)
@@ -145,8 +145,8 @@ router.post('/:dmId/messages', authMiddleware, async (req, res) => {
             [dmId, req.userId, content, attachment_url, attachment_type, attachment_name]
         );
 
-        const message = await db.get(`
-            SELECT m.*, u.name as user_name, u.username, u.avatar_url 
+        const newMessage = await db.get(`
+            SELECT m.*, u.name as user_name, u.avatar_url 
             FROM messages m
             JOIN users u ON m.user_id = u.id
             WHERE m.id = ?
@@ -170,18 +170,18 @@ router.post('/:dmId/messages', authMiddleware, async (req, res) => {
         const io = req.app.get('io');
         if (io) {
             const allSockets = await io.fetchSockets();
-            
+
             // Find sockets for both users
             const senderSocket = allSockets.find(s => s.userId === req.userId);
             const recipientSocket = allSockets.find(s => s.userId === recipientId);
-            
+
             // Get detailed info about all connected sockets
             const connectedUsersInfo = allSockets.map(s => ({
                 userId: s.userId,
                 socketId: s.id,
                 rooms: Array.from(s.rooms || [])
             }));
-            
+
             console.log(`[DM] Broadcasting new-message to dm-${dmId}:`, {
                 messageId: message.id,
                 content: message.content?.substring(0, 50),
@@ -192,7 +192,7 @@ router.post('/:dmId/messages', authMiddleware, async (req, res) => {
                 allConnectedUsers: allSockets.map(s => s.userId),
                 detailedConnections: connectedUsersInfo
             });
-            
+
             if (!recipientSocket) {
                 console.warn(`[DM] WARNING: Recipient ${recipientId} is NOT connected! Message will not be delivered in real-time.`);
                 console.warn(`[DM] Available user IDs:`, allSockets.map(s => s.userId));
@@ -202,7 +202,7 @@ router.post('/:dmId/messages', authMiddleware, async (req, res) => {
             if (senderSocket) {
                 senderSocket.emit('new-message', message);
             }
-            
+
             // Send directly to recipient
             if (recipientSocket) {
                 recipientSocket.emit('new-message', message);
@@ -249,19 +249,19 @@ router.post('/:dmId/read', authMiddleware, async (req, res) => {
             dmId: dmId,
             lastMessageId: lastMessage?.id || null
         });
-        
+
         // First, delete any existing receipt for this user+dm to avoid NULL issues
         await db.run(`
             DELETE FROM read_receipts 
             WHERE user_id = ? AND dm_id = ? AND channel_id IS NULL
         `, [req.userId, dmId]);
-        
+
         // Then insert new receipt
         await db.run(`
             INSERT INTO read_receipts (user_id, channel_id, dm_id, last_read_message_id, last_read_at)
             VALUES (?, NULL, ?, ?, CURRENT_TIMESTAMP)
         `, [req.userId, dmId, lastMessage?.id || null]);
-        
+
         // Verify it was saved
         const saved = await db.get(`
             SELECT * FROM read_receipts 
