@@ -45,15 +45,26 @@ class PostgresAdapter {
 
     async run(sql, params = []) {
         const normalized = this._normalizeQuery(sql);
+        console.log('[DB ADAPTER] RUN Query:', normalized);
+        console.log('[DB ADAPTER] RUN Params:', params);
+
         const client = await this.pool.connect();
         try {
             const result = await client.query(normalized, params);
 
             // Emulate SQLite 'run' return object
-            return {
+            const returnValue = {
                 lastID: result.rows[0]?.id || result.rows[0]?.ID || 0,
                 changes: result.rowCount
             };
+
+            console.log('[DB ADAPTER] RUN Result:', returnValue);
+            return returnValue;
+        } catch (err) {
+            console.error('[DB ADAPTER] RUN ERROR:', err.message);
+            console.error('[DB ADAPTER] Failed Query:', normalized);
+            console.error('[DB ADAPTER] Failed Params:', params);
+            throw err;
         } finally {
             client.release();
         }
