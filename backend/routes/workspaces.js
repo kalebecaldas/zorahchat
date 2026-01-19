@@ -24,7 +24,7 @@ router.get('/', authMiddleware, async (req, res) => {
             JOIN workspace_users wu ON w.id = wu.workspace_id
             WHERE wu.user_id = ?
             ORDER BY w.created_at DESC
-        `, req.userId);
+        `, [req.userId]);
 
         res.json(workspaces);
     } catch (error) {
@@ -62,7 +62,7 @@ router.post('/', authMiddleware, async (req, res) => {
         await db.run('INSERT INTO channels (workspace_id, name, created_by) VALUES (?, ?, ?)', [workspaceId, 'general', req.userId]);
         await db.run('INSERT INTO channels (workspace_id, name, created_by) VALUES (?, ?, ?)', [workspaceId, 'random', req.userId]);
 
-        const workspace = await db.get('SELECT * FROM workspaces WHERE id = ?', workspaceId);
+        const workspace = await db.get('SELECT * FROM workspaces WHERE id = ?', [workspaceId]);
         res.status(201).json(workspace);
     } catch (error) {
         console.error('Create Workspace Error:', error);
@@ -92,7 +92,7 @@ router.put('/:workspaceId', authMiddleware, async (req, res) => {
             [name, description, avatar_url, workspaceId]
         );
 
-        const workspace = await db.get('SELECT * FROM workspaces WHERE id = ?', workspaceId);
+        const workspace = await db.get('SELECT * FROM workspaces WHERE id = ?', [workspaceId]);
         res.json(workspace);
     } catch (error) {
         console.error('Update Workspace Error:', error);
@@ -121,7 +121,7 @@ router.get('/:workspaceId/members', authMiddleware, async (req, res) => {
             JOIN workspace_users wu ON u.id = wu.user_id
             WHERE wu.workspace_id = ?
             ORDER BY wu.joined_at ASC
-        `, workspaceId);
+        `, [workspaceId]);
 
         res.json(members);
     } catch (error) {
@@ -148,7 +148,7 @@ router.put('/:workspaceId/members/:userId', authMiddleware, async (req, res) => 
         }
 
         // Don't allow changing workspace owner
-        const workspace = await db.get('SELECT owner_id FROM workspaces WHERE id = ?', workspaceId);
+        const workspace = await db.get('SELECT owner_id FROM workspaces WHERE id = ?', [workspaceId]);
         if (workspace.owner_id == userId && role !== 'admin') {
             return res.status(400).json({ error: 'Cannot demote workspace owner' });
         }
@@ -181,7 +181,7 @@ router.delete('/:workspaceId/members/:userId', authMiddleware, async (req, res) 
         }
 
         // Don't allow removing workspace owner
-        const workspace = await db.get('SELECT owner_id FROM workspaces WHERE id = ?', workspaceId);
+        const workspace = await db.get('SELECT owner_id FROM workspaces WHERE id = ?', [workspaceId]);
         if (workspace.owner_id == userId) {
             return res.status(400).json({ error: 'Cannot remove workspace owner' });
         }
@@ -214,7 +214,7 @@ router.post('/:workspaceId/invite', authMiddleware, async (req, res) => {
             return res.status(403).json({ error: 'Admin access required' });
         }
 
-        const user = await db.get('SELECT id FROM users WHERE email = ?', email);
+        const user = await db.get('SELECT id FROM users WHERE email = ?', [email]);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -290,8 +290,9 @@ router.post('/:workspaceId/join', authMiddleware, async (req, res) => {
             return res.status(400).json({ error: 'You already have a pending request' });
         }
 
+        // PostgreSQL: Use INSERT ... ON CONFLICT instead of INSERT OR REPLACE
         await db.run(
-            'INSERT OR REPLACE INTO workspace_join_requests (workspace_id, user_id, status) VALUES (?, ?, ?)',
+            'INSERT INTO workspace_join_requests (workspace_id, user_id, status) VALUES (?, ?, ?) ON CONFLICT (workspace_id, user_id) DO UPDATE SET status = EXCLUDED.status',
             [workspaceId, req.userId, 'pending']
         );
 
@@ -317,7 +318,7 @@ router.get('/my-requests', authMiddleware, async (req, res) => {
             FROM workspace_join_requests jr
             JOIN workspaces w ON jr.workspace_id = w.id
             WHERE jr.user_id = ? AND jr.status = 'pending'
-        `, req.userId);
+        `, [req.userId]);
         res.json(requests);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -345,7 +346,7 @@ router.get('/:workspaceId/pending-requests', authMiddleware, async (req, res) =>
             JOIN users u ON jr.user_id = u.id
             WHERE jr.workspace_id = ? AND jr.status = 'pending'
             ORDER BY jr.created_at DESC
-        `, workspaceId);
+        `, [workspaceId]);
 
         res.json(requests);
     } catch (error) {
