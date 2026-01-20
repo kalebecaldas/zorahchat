@@ -21,6 +21,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
     const [selectedFile, setSelectedFile] = useState(null);
     const [mentionState, setMentionState] = useState(null); // { query, position, startIndex }
     const [channelMembers, setChannelMembers] = useState([]);
+    const [showDatePicker, setShowDatePicker] = useState(null); // ID do separador de data ativo
+    const [selectedDate, setSelectedDate] = useState(null); // Data selecionada para navegação
     const endRef = useRef(null);
     const fileInputRef = useRef(null);
     const messageInputRef = useRef(null);
@@ -308,6 +310,18 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    // Fechar dropdown de data ao clicar fora
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (showDatePicker && !e.target.closest('.date-separator-container')) {
+                setShowDatePicker(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showDatePicker]);
 
     const scrollToBottom = () => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -824,6 +838,86 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         }
     };
 
+    // Função para formatar data no estilo Slack
+    const formatDateSeparator = (date) => {
+        const messageDate = new Date(date);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        // Resetar horas para comparação apenas de datas
+        const resetTime = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const msgDate = resetTime(messageDate);
+        const todayDate = resetTime(today);
+        const yesterdayDate = resetTime(yesterday);
+
+        if (msgDate.getTime() === todayDate.getTime()) {
+            return 'Hoje';
+        } else if (msgDate.getTime() === yesterdayDate.getTime()) {
+            return 'Ontem';
+        } else {
+            // Formato: "Sexta-feira, 16 de janeiro"
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            return messageDate.toLocaleDateString('pt-BR', options);
+        }
+    };
+
+    // Função para agrupar mensagens por data
+    const groupMessagesByDate = (messages) => {
+        const groups = [];
+        let currentDate = null;
+
+        messages.forEach((msg, index) => {
+            const msgDate = new Date(msg.created_at).toDateString();
+
+            if (msgDate !== currentDate) {
+                currentDate = msgDate;
+                groups.push({
+                    type: 'date-separator',
+                    date: msg.created_at,
+                    id: `date-${msgDate}`
+                });
+            }
+
+            groups.push({
+                type: 'message',
+                data: msg
+            });
+        });
+
+        return groups;
+    };
+
+    // Função para navegar para data específica
+    const jumpToDate = (dateOption) => {
+        const targetDate = new Date();
+
+        switch (dateOption) {
+            case 'today':
+                // Já está em hoje
+                break;
+            case 'yesterday':
+                targetDate.setDate(targetDate.getDate() - 1);
+                break;
+            case 'last-week':
+                targetDate.setDate(targetDate.getDate() - 7);
+                break;
+            case 'custom':
+                // Abrir seletor de data customizado
+                // Por enquanto, vamos apenas fechar o dropdown
+                setShowDatePicker(null);
+                return;
+            default:
+                break;
+        }
+
+        setSelectedDate(targetDate);
+        setShowDatePicker(null);
+
+        // Aqui você pode implementar a lógica para buscar mensagens da data específica
+        // Por exemplo: fetchMessagesForDate(targetDate);
+    };
+
     if (!channelId && !dmId) {
         return (
             <div style={{
@@ -885,7 +979,56 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     </div>
                 )}
 
-                {messages.map(msg => {
+                {groupMessagesByDate(messages).map((item, index) => {
+                    if (item.type === 'date-separator') {
+                        return (
+                            <div key={item.id} className="date-separator-container">
+                                <div className="date-separator-line" />
+                                <button
+                                    className="date-separator-button"
+                                    onClick={() => setShowDatePicker(showDatePicker === item.id ? null : item.id)}
+                                >
+                                    <span>{formatDateSeparator(item.date)}</span>
+                                    <span className="date-separator-arrow">▼</span>
+                                </button>
+                                <div className="date-separator-line" />
+
+                                {/* Dropdown de navegação de data */}
+                                {showDatePicker === item.id && (
+                                    <div className="date-picker-dropdown">
+                                        <button
+                                            className="date-picker-option"
+                                            onClick={() => jumpToDate('today')}
+                                        >
+                                            📅 Ir para hoje
+                                        </button>
+                                        <button
+                                            className="date-picker-option"
+                                            onClick={() => jumpToDate('yesterday')}
+                                        >
+                                            ⏮️ Ir para ontem
+                                        </button>
+                                        <button
+                                            className="date-picker-option"
+                                            onClick={() => jumpToDate('last-week')}
+                                        >
+                                            📆 Ir para semana passada
+                                        </button>
+                                        <div className="date-picker-divider" />
+                                        <button
+                                            className="date-picker-option"
+                                            onClick={() => jumpToDate('custom')}
+                                        >
+                                            🗓️ Escolher data específica...
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    }
+
+                    // Renderizar mensagem
+                    const msg = item.data;
                     const isOwnMessage = Number(msg.user_id) === Number(user?.id);
                     if (messages.length > 0 && msg.id === messages[0].id) {
                         console.log('[CHAT DEBUG] First message check:', {
