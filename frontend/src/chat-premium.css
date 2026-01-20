@@ -123,23 +123,41 @@
     line-height: 1.6 !important;
 }
 
-/* Own Message Variation (Optional: keep bubbles or modernize?) 
-   Let's keep bubbles for own messages to distinguish easily */
+/* Own Message Variation - WhatsApp/Telegram Style (Right Aligned) */
 .message-item.own-message {
-    /* For "Discord style" we usually don't align right, but keep bubbles for now if desired. 
-       Actually, modern professional chats (Slack/Discord) align everything left. 
-       Let's stick to Left Align for everything for a cleaner look, 
-       but highlight own username */
-    flex-direction: row !important;
-    /* Force left align */
+    flex-direction: row-reverse !important;
+    /* Avatar on the right */
+    justify-content: flex-start !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
 
+.message-item.own-message .message-content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    /* Align content to the right */
+}
+
+.message-item.own-message .message-header {
+    flex-direction: row-reverse !important;
+    /* Username and timestamp reversed */
+}
+
 .message-item.own-message .username {
     color: #818cf8 !important;
     /* Accent color for own name */
+}
+
+.message-item.own-message .message-body {
+    text-align: right !important;
+    /* Text aligned to the right */
+    background: rgba(99, 102, 241, 0.15) !important;
+    /* Subtle background for own messages */
+    padding: 8px 12px !important;
+    border-radius: 12px !important;
+    max-width: fit-content !important;
 }
 
 /* --- Input Area --- */
