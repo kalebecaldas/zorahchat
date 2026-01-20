@@ -143,6 +143,7 @@
 .message-item.own-message .message-header {
     flex-direction: row-reverse !important;
     /* Username and timestamp reversed */
+    justify-content: flex-start !important;
 }
 
 .message-item.own-message .username {
@@ -151,13 +152,19 @@
 }
 
 .message-item.own-message .message-body {
-    text-align: right !important;
-    /* Text aligned to the right */
+    text-align: left !important;
+    /* Text inside bubble aligned left for readability */
     background: rgba(99, 102, 241, 0.15) !important;
     /* Subtle background for own messages */
     padding: 8px 12px !important;
     border-radius: 12px !important;
     max-width: fit-content !important;
+    width: auto !important;
+}
+
+/* Align attachments and reactions for own messages */
+.message-item.own-message .message-content>div:not(.message-header):not(.message-body) {
+    align-self: flex-end !important;
 }
 
 /* --- Date Separators (Slack Style) --- */

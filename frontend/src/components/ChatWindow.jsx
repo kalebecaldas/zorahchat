@@ -1067,20 +1067,12 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                             <div className="message-content">
                                 <div className="message-header">
                                     <span className="username">{msg.user_name}</span>
-                                    {Number(msg.user_id) !== Number(user?.id) && (
-                                        <span className="timestamp">
-                                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            {msg.edited_at && <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem', color: 'var(--text-tertiary)' }}>(editado)</span>}
-                                        </span>
-                                    )}
+                                    <span className="timestamp">
+                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        {msg.edited_at && <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem', color: 'var(--text-tertiary)' }}>(editado)</span>}
+                                    </span>
                                 </div>
                                 {msg.content && <div className="message-body">{msg.content}</div>}
-                                {Number(msg.user_id) === Number(user?.id) && (
-                                    <span className="timestamp" style={{ alignSelf: 'flex-end', marginTop: '0.25rem' }}>
-                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        {msg.edited_at && <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem' }}>(editado)</span>}
-                                    </span>
-                                )}
                                 {renderAttachment(msg)}
 
                                 {/* Reactions */}
