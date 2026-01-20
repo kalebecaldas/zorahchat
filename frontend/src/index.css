@@ -339,26 +339,26 @@ body {
 
 /* Own messages - align to the right with different background [v2.0 - UPDATED] */
 .message-item.own-message {
-  flex-direction: row-reverse;
+  flex-direction: row-reverse !important;
 }
 
 .message-item.own-message .message-content {
-  background: var(--zorah-primary);
-  padding: 0.75rem 1rem;
-  border-radius: 12px 12px 4px 12px;
-  max-width: 70%;
+  background: var(--zorah-primary) !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 12px 12px 4px 12px !important;
+  max-width: 70% !important;
 }
 
 .message-item.own-message .message-body {
-  color: #ffffff;
+  color: #ffffff !important;
 }
 
 .message-item.own-message .username {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .message-item.own-message .timestamp {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* --- INPUT AREA (Clean & Modern) --- */
