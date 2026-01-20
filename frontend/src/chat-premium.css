@@ -141,9 +141,10 @@
 }
 
 .message-item.own-message .message-header {
-    flex-direction: row-reverse !important;
-    /* Username and timestamp reversed */
-    justify-content: flex-start !important;
+    flex-direction: row !important;
+    /* Keep normal order for header elements */
+    justify-content: flex-end !important;
+    /* Align to the right */
 }
 
 .message-item.own-message .username {
