@@ -43,7 +43,18 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
         console.log('[SOCKET] Setting up room and listeners for:', { channelId, dmId });
 
-        setMessages([]); // Clear stale messages
+        // Clear stale messages and reset UI state
+        setMessages([]);
+        setUploadedFile(null);
+        setShowEmojiPicker(null);
+        setMentionState(null);
+        setIsTyping(false);
+        setTypingUser(null);
+        
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
 
         // 🚀 INSTANT LOAD: Check navigation state first, then cache
 
@@ -456,12 +467,28 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
             if (res.ok) {
                 const data = await res.json();
                 setUploadedFile(data);
+                
+                // Focus back to message input after upload completes
+                setTimeout(() => {
+                    if (messageInputRef.current) {
+                        messageInputRef.current.focus();
+                    }
+                }, 100);
             } else {
-                alert('Erro ao fazer upload do arquivo');
+                const errorData = await res.json();
+                alert(`Erro ao fazer upload: ${errorData.error || 'Erro desconhecido'}`);
+                // Reset file input on error
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
             }
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Erro ao fazer upload do arquivo');
+            alert('Erro ao fazer upload do arquivo. Tente novamente.');
+            // Reset file input on error
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         } finally {
             setUploading(false);
         }
@@ -487,36 +514,52 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
             attachment_name: uploadedFile?.name
         };
 
-        const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        });
-
-        if (res.ok) {
-            const sentMessage = await res.json();
-
-            // Optimistically add message if not already present (prevents waiting for socket)
-            setMessages(prev => {
-                if (prev.some(m => m.id === sentMessage.id)) return prev;
-                return [...prev, sentMessage];
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
             });
-            scrollToBottom();
 
-            setNewMessage('');
-            setUploadedFile(null);
-            if (fileInputRef.current) fileInputRef.current.value = '';
+            if (res.ok) {
+                const sentMessage = await res.json();
 
-            if (socket && channelId) {
-                socket.emit('stop-typing', { channelId });
-                setIsTyping(false);
+                // Optimistically add message if not already present (prevents waiting for socket)
+                setMessages(prev => {
+                    if (prev.some(m => m.id === sentMessage.id)) return prev;
+                    return [...prev, sentMessage];
+                });
+                scrollToBottom();
+
+                // Clear input and uploaded file
+                setNewMessage('');
+                setUploadedFile(null);
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+
+                // Stop typing indicator
+                if (socket && channelId) {
+                    socket.emit('stop-typing', { channelId });
+                    setIsTyping(false);
+                }
+
+                // Focus back to input after sending
+                setTimeout(() => {
+                    if (messageInputRef.current) {
+                        messageInputRef.current.focus();
+                    }
+                }, 100);
+            } else {
+                const data = await res.json();
+                alert(`Erro ao enviar mensagem: ${data.error || 'Erro desconhecido'}`);
             }
-        } else {
-            const data = await res.json();
-            alert(`Erro ao enviar mensagem: ${data.error || 'Erro desconhecido'}`);
+        } catch (error) {
+            console.error('Error sending message:', error);
+            alert('Erro ao enviar mensagem. Tente novamente.');
         }
     };
 

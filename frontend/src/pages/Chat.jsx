@@ -22,30 +22,36 @@ export default function Chat() {
         if (workspaceId && !channelId && !dmId) {
             setLoading(true);
             const token = localStorage.getItem('token');
-            fetch(`/api/channels/${workspaceId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-                .then(res => {
+            
+            const fetchChannels = async () => {
+                try {
+                    const res = await fetch(`/api/channels/${workspaceId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
                     if (!res.ok) throw new Error('Failed to fetch channels');
-                    return res.json();
-                })
-                .then(channels => {
+                    
+                    const channels = await res.json();
                     const general = channels.find(c => c.name === 'general');
+                    
                     if (general) {
                         navigate(`/client/${workspaceId}/${general.id}`, { replace: true });
                     } else if (channels.length > 0) {
                         navigate(`/client/${workspaceId}/${channels[0].id}`, { replace: true });
+                    } else {
+                        // No channels available
+                        setLoading(false);
                     }
-                })
-                .catch(err => {
+                } catch (err) {
                     console.error('Error fetching default channel:', err);
                     setLoading(false);
-                })
-                .finally(() => {
-                    setTimeout(() => setLoading(false), 500);
-                });
+                }
+            };
+            
+            fetchChannels();
         } else {
-            setLoading(false);
+            // Give a small delay to ensure socket connection
+            setTimeout(() => setLoading(false), 300);
         }
     }, [workspaceId, channelId, dmId, navigate]);
 

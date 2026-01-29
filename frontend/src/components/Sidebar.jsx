@@ -34,6 +34,13 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
 
     useEffect(() => {
         if (workspaceId) {
+            // Clear previous data first to avoid showing stale content
+            setChannels([]);
+            setDms([]);
+            setMembers([]);
+            setUnreadCounts({});
+            
+            // Fetch all data
             fetchChannels();
             fetchDMs();
             fetchMembers();
@@ -59,38 +66,58 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
     }, [currentChannelId, currentDmId]);
 
     const fetchChannels = async () => {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`/api/channels/${workspaceId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/channels/${workspaceId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!res.ok) {
+                console.error('Failed to fetch channels:', res.status);
+                return;
+            }
+            
             const data = await res.json();
-            setChannels(data);
+            setChannels(data || []);
+            
             if (!currentChannelId && !currentDmId && data.length > 0) {
                 const general = data.find(c => c.name === 'general') || data[0];
                 navigate(`/client/${workspaceId}/${general.id}`);
             }
-        }
 
-        const wsRes = await fetch('/api/workspaces', { headers: { 'Authorization': `Bearer ${token}` } });
-        if (wsRes.ok) {
-            const spaces = await wsRes.json();
-            const current = spaces.find(s => s.id == workspaceId);
-            if (current) {
-                setWorkspaceName(current.name);
-                setUserRole(current.role || 'member');
+            // Fetch workspace info
+            const wsRes = await fetch('/api/workspaces', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (wsRes.ok) {
+                const spaces = await wsRes.json();
+                const current = spaces.find(s => s.id == workspaceId);
+                if (current) {
+                    setWorkspaceName(current.name);
+                    setUserRole(current.role || 'member');
+                }
             }
+        } catch (error) {
+            console.error('Error fetching channels:', error);
+            setChannels([]);
         }
     };
 
     const fetchDMs = async () => {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`/api/dm/${workspaceId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/dm/${workspaceId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!res.ok) {
+                console.error('Failed to fetch DMs:', res.status);
+                return;
+            }
+            
             const data = await res.json();
-            setDms(data);
+            setDms(data || []);
+        } catch (error) {
+            console.error('Error fetching DMs:', error);
+            setDms([]);
         }
     };
 
@@ -108,17 +135,40 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
     };
 
     const fetchUnreadCounts = async () => {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`/api/messages/unread/${workspaceId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-            const data = await res.json();
-            const counts = {};
-            data.forEach(ch => {
-                counts[ch.id] = ch.unread_count;
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/messages/unread/${workspaceId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-            setUnreadCounts(counts);
+            
+            if (!res.ok) {
+                console.error('Failed to fetch unread counts:', res.status);
+                return;
+            }
+            
+            const data = await res.json();
+            console.log('[SIDEBAR] Unread counts fetched:', data);
+            
+            const countsMap = {};
+            
+            // Map channel unread counts
+            if (data.channels) {
+                data.channels.forEach(ch => {
+                    countsMap[ch.id] = parseInt(ch.unread_count) || 0;
+                });
+            }
+            
+            // Map DM unread counts (use 'dm-' prefix to distinguish)
+            if (data.dms) {
+                data.dms.forEach(dm => {
+                    countsMap[`dm-${dm.id}`] = parseInt(dm.unread_count) || 0;
+                });
+            }
+            
+            console.log('[SIDEBAR] Unread counts map:', countsMap);
+            setUnreadCounts(countsMap);
+        } catch (error) {
+            console.error('Error fetching unread counts:', error);
         }
     };
 
