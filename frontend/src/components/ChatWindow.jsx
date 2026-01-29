@@ -1260,8 +1260,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     </div>
                 )}
 
-                <form onSubmit={handleSend} className="chat-input-container">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <form onSubmit={handleSend} className="chat-input-container" style={{ width: '100%', maxWidth: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', maxWidth: '100%', minWidth: 0 }}>
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -1290,7 +1290,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                             {uploading ? '⏳' : '📎'}
                         </button>
 
-                        <div style={{ position: 'relative', flex: 1 }}>
+                        <div style={{ position: 'relative', flex: 1, minWidth: 0, maxWidth: '100%' }}>
                             <input
                                 ref={messageInputRef}
                                 className="chat-input"
@@ -1319,7 +1319,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                                     }
                                 }}
                                 placeholder={isDM ? `Mensagem para ${dmUser?.name || '...'}` : `Enviar mensagem em #${channelName || '...'}`}
-                                style={{ width: '100%' }}
+                                style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
                             />
 
                             {/* Mention Autocomplete - only in channels */}
