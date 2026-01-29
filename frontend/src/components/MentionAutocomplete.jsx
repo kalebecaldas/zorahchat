@@ -119,7 +119,6 @@ const MentionAutocomplete = ({
             className="mention-autocomplete"
             style={{
                 position: 'absolute',
-                bottom: '100%',
                 left: position?.left || 0,
                 bottom: position?.bottom || 'calc(100% + 8px)',
                 zIndex: 1000,

@@ -479,6 +479,74 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         }
     };
 
+    // Load older messages (lazy loading)
+    const loadOlderMessages = async () => {
+        if (!hasMoreMessages || isLoadingOlderMessages || !oldestMessageId) {
+            console.log('[LAZY LOAD] Skipping - no more messages or already loading');
+            return;
+        }
+
+        setIsLoadingOlderMessages(true);
+        console.log('[LAZY LOAD] Loading messages before ID:', oldestMessageId);
+
+        try {
+            const token = localStorage.getItem('token');
+            let url;
+            
+            if (channelId) {
+                url = `/api/messages/${channelId}?limit=50&before=${oldestMessageId}`;
+            } else if (dmId) {
+                url = `/api/direct-messages/${dmId}/messages?limit=50&before=${oldestMessageId}`;
+            }
+
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const olderMessages = data.messages || data;
+                
+                console.log('[LAZY LOAD] Loaded', olderMessages.length, 'older messages');
+
+                // Save current scroll position BEFORE adding messages
+                if (messageListRef.current) {
+                    previousScrollHeightRef.current = messageListRef.current.scrollHeight;
+                }
+
+                // Add older messages to the BEGINNING of array
+                setMessages(prev => [...olderMessages, ...prev]);
+                setHasMoreMessages(data.hasMore || false);
+                setOldestMessageId(data.oldest || null);
+
+                // Restore scroll position AFTER render
+                requestAnimationFrame(() => {
+                    if (messageListRef.current) {
+                        const newScrollHeight = messageListRef.current.scrollHeight;
+                        const scrollDiff = newScrollHeight - previousScrollHeightRef.current;
+                        messageListRef.current.scrollTop += scrollDiff;
+                        console.log('[LAZY LOAD] Adjusted scroll by', scrollDiff, 'pixels');
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('[LAZY LOAD] Error loading older messages:', error);
+        } finally {
+            setIsLoadingOlderMessages(false);
+        }
+    };
+
+    // Detect scroll to top for lazy loading
+    const handleScroll = (e) => {
+        const { scrollTop } = e.target;
+        
+        // If user scrolls near the top (within 100px), load more
+        if (scrollTop < 100 && hasMoreMessages && !isLoadingOlderMessages) {
+            console.log('[LAZY LOAD] User scrolled to top, loading older messages');
+            loadOlderMessages();
+        }
+    };
+
     const handleTyping = () => {
         if (!socket || !channelId) return;
 
