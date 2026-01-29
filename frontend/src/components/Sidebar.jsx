@@ -914,11 +914,11 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
                         }}
                     />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                     <div style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {user?.name}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {userStatus}
                     </div>
                 </div>

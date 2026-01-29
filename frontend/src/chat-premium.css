@@ -52,7 +52,8 @@
     position: relative !important;
     width: 100% !important;
     max-width: 100% !important;
-    overflow-x: hidden !important;
+    height: 100vh !important;
+    overflow: hidden !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
@@ -60,6 +61,7 @@
 
 /* Premium Header with Glassmorphism */
 .chat-header {
+    flex-shrink: 0 !important;
     background: var(--header-bg) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
@@ -71,11 +73,16 @@
 
 /* --- Message List --- */
 .message-list {
-    padding: 2rem 1.5rem !important;
-    gap: 1.25rem !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
     overflow-x: hidden !important;
+    padding: 2rem 1.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.25rem !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    scroll-behavior: smooth !important;
 }
 
 /* Message Bubbles */
@@ -245,8 +252,9 @@
     border-radius: 12px;
     padding: 8px;
     min-width: 240px;
+    max-width: 300px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    z-index: 100;
+    z-index: 5;
     animation: slideDown 0.2s ease;
 }
 

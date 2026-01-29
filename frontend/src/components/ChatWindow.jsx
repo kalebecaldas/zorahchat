@@ -342,11 +342,18 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
     // 🔥 Scroll to bottom helper with behavior option
     const scrollToBottom = (behavior = 'smooth') => {
-        if (endRef.current) {
-            endRef.current.scrollIntoView({ 
-                behavior: behavior,
-                block: 'end'
-            });
+        // Use messageListRef para scroll direto (mais confiável)
+        if (messageListRef.current) {
+            if (behavior === 'auto' || behavior === 'instant') {
+                // Scroll instantâneo
+                messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+            } else {
+                // Scroll suave
+                messageListRef.current.scrollTo({
+                    top: messageListRef.current.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
         }
     };
 
@@ -398,12 +405,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                         
                         // Scroll to bottom IMEDIATAMENTE após carregar mensagens (DM)
                         requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                                if (endRef.current) {
-                                    endRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
-                                    console.log('[SCROLL] Instant scroll to bottom after DM load');
-                                }
-                            });
+                            scrollToBottom('instant');
+                            console.log('[SCROLL] Instant scroll to bottom after DM load');
                         });
                     }
                 }
@@ -444,12 +447,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                         
                         // Scroll to bottom IMEDIATAMENTE após carregar mensagens (Channel)
                         requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                                if (endRef.current) {
-                                    endRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
-                                    console.log('[SCROLL] Instant scroll to bottom after channel load');
-                                }
-                            });
+                            scrollToBottom('instant');
+                            console.log('[SCROLL] Instant scroll to bottom after channel load');
                         });
                     }
                 }
