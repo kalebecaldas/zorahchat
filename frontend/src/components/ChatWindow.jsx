@@ -145,7 +145,17 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         // Fetch messages with AbortSignal
         const abortController = new AbortController();
         console.log('[CHAT] Fetching messages for:', { channelId, dmId });
-        fetchMessages(abortController.signal);
+        
+        // Fetch messages and scroll to bottom when done
+        fetchMessages(abortController.signal).then(() => {
+            // Scroll to bottom instantly after all messages loaded
+            if (!abortController.signal.aborted) {
+                setTimeout(() => {
+                    scrollToBottom('instant');
+                    console.log('[CHAT] Scrolled to bottom after loading messages');
+                }, 200);
+            }
+        });
 
         // Fetch channel members for mentions (only for channels, not DMs)
         if (channelId && !dmId) {
@@ -223,8 +233,9 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
                 return [...prev, message];
             });
-            // Smooth scroll for new messages arriving
-            scrollToBottom('smooth');
+            
+            // Smooth scroll for new messages arriving (apenas para mensagens novas em tempo real)
+            setTimeout(() => scrollToBottom('smooth'), 100);
 
             // Browser Notification
             if (document.hidden && Number(message.user_id) !== Number(user?.id)) {
@@ -319,13 +330,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         };
     }, [socket]);
 
-    // Auto-scroll when messages change (smooth for new messages)
-    useEffect(() => {
-        if (messages.length > 0) {
-            // Use smooth scroll for messages updates
-            scrollToBottom('smooth');
-        }
-    }, [messages.length]); // Depend on length to avoid excessive scrolling
+    // Não fazer auto-scroll ao carregar mensagens iniciais
+    // O scroll será controlado manualmente em cada ação específica
 
     // Fechar dropdown de data ao clicar fora
     useEffect(() => {
@@ -442,10 +448,6 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         } finally {
             if (!signal?.aborted) {
                 setIsLoadingMessages(false);
-                // Scroll to bottom instantly when loading messages (not smooth)
-                setTimeout(() => {
-                    scrollToBottom('instant');
-                }, 150);
             }
         }
     };
