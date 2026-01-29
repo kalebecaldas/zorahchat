@@ -399,8 +399,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                         // Scroll to bottom IMEDIATAMENTE após carregar mensagens (DM)
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                if (messageEndRef.current) {
-                                    messageEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+                                if (endRef.current) {
+                                    endRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
                                     console.log('[SCROLL] Instant scroll to bottom after DM load');
                                 }
                             });
@@ -445,8 +445,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                         // Scroll to bottom IMEDIATAMENTE após carregar mensagens (Channel)
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                if (messageEndRef.current) {
-                                    messageEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+                                if (endRef.current) {
+                                    endRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
                                     console.log('[SCROLL] Instant scroll to bottom after channel load');
                                 }
                             });
