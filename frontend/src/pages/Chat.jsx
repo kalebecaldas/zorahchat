@@ -8,6 +8,7 @@ import NotificationContainer from '../components/NotificationContainer';
 export default function Chat() {
     const { workspaceId, channelId, dmId } = useParams();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { socket } = useSocket();
 
@@ -19,11 +20,15 @@ export default function Chat() {
     // Redirect to general if no channel/DM selected
     useEffect(() => {
         if (workspaceId && !channelId && !dmId) {
+            setLoading(true);
             const token = localStorage.getItem('token');
             fetch(`/api/channels/${workspaceId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to fetch channels');
+                    return res.json();
+                })
                 .then(channels => {
                     const general = channels.find(c => c.name === 'general');
                     if (general) {
@@ -32,7 +37,15 @@ export default function Chat() {
                         navigate(`/client/${workspaceId}/${channels[0].id}`, { replace: true });
                     }
                 })
-                .catch(err => console.error('Error fetching default channel:', err));
+                .catch(err => {
+                    console.error('Error fetching default channel:', err);
+                    setLoading(false);
+                })
+                .finally(() => {
+                    setTimeout(() => setLoading(false), 500);
+                });
+        } else {
+            setLoading(false);
         }
     }, [workspaceId, channelId, dmId, navigate]);
 
@@ -56,6 +69,30 @@ export default function Chat() {
             document.body.style.overflow = '';
         };
     }, [mobileMenuOpen]);
+
+    if (loading) {
+        return (
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100vh',
+                background: 'var(--zorah-bg)',
+                color: 'var(--text-primary)'
+            }}>
+                <div style={{ textAlign: 'center' }}>
+                    <div style={{ 
+                        fontSize: '2rem',
+                        marginBottom: '1rem',
+                        animation: 'pulse 1.5s ease-in-out infinite'
+                    }}>
+                        💬
+                    </div>
+                    <div>Carregando...</div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>

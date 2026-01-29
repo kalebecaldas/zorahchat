@@ -282,6 +282,22 @@ async function initializeDatabase() {
     await safeRun('CREATE INDEX IF NOT EXISTS idx_mentions_message ON mentions(message_id)');
     await safeRun('CREATE INDEX IF NOT EXISTS idx_mentions_user ON mentions(user_id)');
 
+    // Admin Audit Log
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS admin_audit_log (
+            id ${PK_TYPE},
+            admin_user_id INTEGER NOT NULL,
+            action TEXT NOT NULL,
+            target_type TEXT,
+            target_id INTEGER,
+            details TEXT,
+            created_at ${TIMESTAMP_TYPE},
+            FOREIGN KEY (admin_user_id) REFERENCES users(id)
+        );
+    `);
+
+    await safeRun('CREATE INDEX IF NOT EXISTS idx_audit_admin ON admin_audit_log(admin_user_id)');
+    await safeRun('CREATE INDEX IF NOT EXISTS idx_audit_target ON admin_audit_log(target_type, target_id)');
 
     console.log('Database initialized.');
     await seedDatabase();

@@ -20,7 +20,15 @@ export function AuthProvider({ children }) {
                     if (res.ok) return res.json();
                     throw new Error('Invalid token');
                 })
-                .then(userData => setUser(userData))
+                .then(userData => {
+                    // Restore status from localStorage if available (preserves across navigation)
+                    const savedStatus = localStorage.getItem('userStatus');
+                    if (savedStatus && ['online', 'away', 'busy'].includes(savedStatus)) {
+                        userData.status = savedStatus;
+                    }
+                    setUser(userData);
+                    console.log('[AUTH] User loaded with status:', userData.status);
+                })
                 .catch(() => localStorage.removeItem('token'))
                 .finally(() => setLoading(false));
         } else {

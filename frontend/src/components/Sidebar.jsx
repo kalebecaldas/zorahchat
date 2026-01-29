@@ -329,6 +329,9 @@ export default function Sidebar({ workspaceId, currentChannelId, currentDmId, cl
             setUserStatus(newStatus);
             // Update the user context so status persists across refreshes
             updateUser({ status: newStatus });
+            // Also persist to localStorage as backup
+            localStorage.setItem('userStatus', newStatus);
+            console.log('[SIDEBAR] Status changed to:', newStatus);
         }
         setShowStatusMenu(false);
     };

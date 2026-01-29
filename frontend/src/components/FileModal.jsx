@@ -4,12 +4,13 @@ import './FileModal.css';
 const FileModal = ({ file, onClose }) => {
     if (!file) return null;
 
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    const baseUrl = `${protocol}//${hostname}:3001`;
+    // Use API URL from environment or construct from window location
+    // In Railway, VITE_API_URL points to the backend domain
+    const apiUrl = import.meta.env.VITE_API_URL || 
+                   `${window.location.protocol}//${window.location.hostname}:3001`;
     const fullUrl = file.attachment_url?.startsWith('http') 
         ? file.attachment_url 
-        : `${baseUrl}${file.attachment_url}`;
+        : `${apiUrl}${file.attachment_url}`;
 
     // Close on ESC key
     useEffect(() => {

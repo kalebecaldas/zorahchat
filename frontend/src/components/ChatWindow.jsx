@@ -536,10 +536,11 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
     const renderAttachment = (msg) => {
         if (!msg.attachment_url) return null;
 
-        const protocol = window.location.protocol;
-        const hostname = window.location.hostname;
-        const baseUrl = `${protocol}//${hostname}:3001`;
-        const fullUrl = msg.attachment_url.startsWith('http') ? msg.attachment_url : `${baseUrl}${msg.attachment_url}`;
+        // Use API URL from environment or construct from window location
+        // In Railway, VITE_API_URL points to the backend domain
+        const apiUrl = import.meta.env.VITE_API_URL || 
+                       `${window.location.protocol}//${window.location.hostname}:3001`;
+        const fullUrl = msg.attachment_url.startsWith('http') ? msg.attachment_url : `${apiUrl}${msg.attachment_url}`;
 
         const handleFileClick = (e) => {
             e.preventDefault();

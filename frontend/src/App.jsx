@@ -7,11 +7,22 @@ import WorkspaceSelect from './pages/WorkspaceSelect';
 import Settings from './pages/Settings';
 import WorkspaceManagement from './pages/WorkspaceManagement';
 import Chat from './pages/Chat';
+import Admin from './pages/Admin';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
+  return children;
+}
+
+function MasterRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (user.email !== 'kalebecaldas@iaamazonas.com.br') {
+    return <Navigate to="/client" />;
+  }
   return children;
 }
 
@@ -58,6 +69,12 @@ function App() {
               <ProtectedRoute>
                 <Chat />
               </ProtectedRoute>
+            } />
+
+            <Route path="/admin" element={
+              <MasterRoute>
+                <Admin />
+              </MasterRoute>
             } />
 
             <Route path="/" element={<Navigate to="/client" />} />
