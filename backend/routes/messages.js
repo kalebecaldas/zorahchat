@@ -21,9 +21,11 @@ async function hasPermission(db, workspaceId, userId, permission) {
     return perms.includes(permission.toLowerCase());
 }
 
-// Get messages for a channel
+// Get messages for a channel (with pagination for lazy loading)
 router.get('/:channelId', authMiddleware, async (req, res) => {
     const { channelId } = req.params;
+    const limit = parseInt(req.query.limit) || 50; // Default: últimas 50 mensagens
+    const before = req.query.before; // Message ID to load messages before (for lazy loading)
     const db = getDb();
 
     try {
@@ -39,13 +41,35 @@ router.get('/:channelId', authMiddleware, async (req, res) => {
             return res.status(403).json({ error: 'Not a member of this workspace' });
         }
 
-        const messages = await db.all(`
-            SELECT m.*, u.name as user_name, u.avatar_url 
-            FROM messages m
-            JOIN users u ON m.user_id = u.id
-            WHERE m.channel_id = ? AND m.deleted_at IS NULL
-            ORDER BY m.created_at ASC
-        `, [channelId]);
+        let messages;
+        
+        if (before) {
+            // Load messages BEFORE a specific message ID (for scrolling up / lazy loading)
+            messages = await db.all(`
+                SELECT m.*, u.name as user_name, u.avatar_url 
+                FROM messages m
+                JOIN users u ON m.user_id = u.id
+                WHERE m.channel_id = ? AND m.deleted_at IS NULL AND m.id < ?
+                ORDER BY m.created_at DESC
+                LIMIT ?
+            `, [channelId, before, limit]);
+            
+            // Reverse to maintain chronological order (oldest to newest)
+            messages = messages.reverse();
+        } else {
+            // Load latest messages (initial load) - get last N messages
+            messages = await db.all(`
+                SELECT * FROM (
+                    SELECT m.*, u.name as user_name, u.avatar_url 
+                    FROM messages m
+                    JOIN users u ON m.user_id = u.id
+                    WHERE m.channel_id = ? AND m.deleted_at IS NULL
+                    ORDER BY m.created_at DESC
+                    LIMIT ?
+                ) sub
+                ORDER BY created_at ASC
+            `, [channelId, limit]);
+        }
 
         // Get reactions for each message
         for (let msg of messages) {
@@ -63,8 +87,8 @@ router.get('/:channelId', authMiddleware, async (req, res) => {
             }));
         }
 
-        // Update read receipt when fetching messages
-        if (messages.length > 0) {
+        // Update read receipt when fetching messages (only for initial load, not lazy load)
+        if (messages.length > 0 && !before) {
             // Delete existing to avoid NULL constraint issues
             await db.run(`
                 DELETE FROM read_receipts 
@@ -78,7 +102,12 @@ router.get('/:channelId', authMiddleware, async (req, res) => {
             `, [req.userId, channelId, messages[messages.length - 1].id]);
         }
 
-        res.json(messages);
+        // Return messages with pagination metadata
+        res.json({
+            messages: messages,
+            hasMore: messages.length === limit, // If we got full limit, there might be more
+            oldest: messages.length > 0 ? messages[0].id : null
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

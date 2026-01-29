@@ -29,10 +29,15 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
     const typingTimeoutRef = useRef(null);
     const channelCacheRef = useRef({}); // Cache para nomes de canais: { channelId: name }
     const dmCacheRef = useRef({}); // Cache para info de DMs: { dmId: { name, avatar, status } }
+    const messageListRef = useRef(null);
+    const previousScrollHeightRef = useRef(0);
     const { user } = useAuth();
     const { socket, connected } = useSocket();
     const [connectionDebug, setConnectionDebug] = useState('');
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+    const [hasMoreMessages, setHasMoreMessages] = useState(false);
+    const [oldestMessageId, setOldestMessageId] = useState(null);
+    const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
     const location = useLocation(); // 🚀 Access navigation state
 
     const isDM = !!dmId;
@@ -145,17 +150,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         // Fetch messages with AbortSignal
         const abortController = new AbortController();
         console.log('[CHAT] Fetching messages for:', { channelId, dmId });
-        
-        // Fetch messages and scroll to bottom when done
-        fetchMessages(abortController.signal).then(() => {
-            // Scroll to bottom instantly after all messages loaded
-            if (!abortController.signal.aborted) {
-                setTimeout(() => {
-                    scrollToBottom('instant');
-                    console.log('[CHAT] Scrolled to bottom after loading messages');
-                }, 200);
-            }
-        });
+        fetchMessages(abortController.signal);
 
         // Fetch channel members for mentions (only for channels, not DMs)
         if (channelId && !dmId) {
@@ -394,7 +389,23 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
                 if (messagesRes.ok) {
                     const data = await messagesRes.json();
-                    if (!signal?.aborted) setMessages(data);
+                    if (!signal?.aborted) {
+                        // Handle new pagination response format
+                        const responseMessages = data.messages || data; // Support both formats
+                        setMessages(responseMessages);
+                        setHasMoreMessages(data.hasMore || false);
+                        setOldestMessageId(data.oldest || null);
+                        
+                        // Scroll to bottom IMEDIATAMENTE após carregar mensagens (DM)
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                if (messageEndRef.current) {
+                                    messageEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+                                    console.log('[SCROLL] Instant scroll to bottom after DM load');
+                                }
+                            });
+                        });
+                    }
                 }
 
                 if (dmInfoRes.ok) {
@@ -424,7 +435,23 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
                 if (messagesRes.ok) {
                     const data = await messagesRes.json();
-                    if (!signal?.aborted) setMessages(data);
+                    if (!signal?.aborted) {
+                        // Handle new pagination response format
+                        const responseMessages = data.messages || data; // Support both formats
+                        setMessages(responseMessages);
+                        setHasMoreMessages(data.hasMore || false);
+                        setOldestMessageId(data.oldest || null);
+                        
+                        // Scroll to bottom IMEDIATAMENTE após carregar mensagens (Channel)
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                if (messageEndRef.current) {
+                                    messageEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+                                    console.log('[SCROLL] Instant scroll to bottom after channel load');
+                                }
+                            });
+                        });
+                    }
                 }
 
                 // 2. Fetch channel info to confirm name (as backup/sync)
@@ -1049,7 +1076,32 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                 )}
             </header>
 
-            <div className="message-list">
+            <div className="message-list" ref={messageListRef} onScroll={handleScroll}>
+                {/* Lazy load indicator at top */}
+                {isLoadingOlderMessages && (
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '1rem',
+                        color: 'var(--text-tertiary)',
+                        fontSize: '0.9em'
+                    }}>
+                        ⏳ Carregando mensagens antigas...
+                    </div>
+                )}
+                
+                {hasMoreMessages && !isLoadingOlderMessages && messages.length > 0 && (
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '0.5rem',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.85em',
+                        fontStyle: 'italic',
+                        opacity: 0.7
+                    }}>
+                        ↑ Role para cima para carregar mais mensagens antigas
+                    </div>
+                )}
+                
                 {messages.length === 0 && (
                     <div style={{
                         textAlign: 'center',
@@ -1057,7 +1109,7 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                         padding: '3rem',
                         fontSize: '0.95rem'
                     }}>
-                        Nenhuma mensagem ainda. Seja o primeiro a enviar!
+                        {isLoadingMessages ? 'Carregando mensagens...' : 'Nenhuma mensagem ainda. Seja o primeiro a enviar!'}
                     </div>
                 )}
 

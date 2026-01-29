@@ -77,9 +77,11 @@ router.get('/:workspaceId', authMiddleware, async (req, res) => {
     }
 });
 
-// Get DM messages
+// Get DM messages (with pagination for lazy loading)
 router.get('/:dmId/messages', authMiddleware, async (req, res) => {
     const { dmId } = req.params;
+    const limit = parseInt(req.query.limit) || 50; // Default: últimas 50 mensagens
+    const before = req.query.before; // Message ID to load messages before (for lazy loading)
     const db = getDb();
 
     try {
@@ -93,16 +95,38 @@ router.get('/:dmId/messages', authMiddleware, async (req, res) => {
             return res.status(403).json({ error: 'Access denied' });
         }
 
-        const messages = await db.all(`
-            SELECT m.*, u.name as user_name, u.avatar_url 
-            FROM messages m
-            JOIN users u ON m.user_id = u.id
-            WHERE m.dm_id = ?
-            ORDER BY m.created_at ASC
-        `, [dmId]);
+        let messages;
+        
+        if (before) {
+            // Load messages BEFORE a specific message ID (for scrolling up / lazy loading)
+            messages = await db.all(`
+                SELECT m.*, u.name as user_name, u.avatar_url 
+                FROM messages m
+                JOIN users u ON m.user_id = u.id
+                WHERE m.dm_id = ? AND m.id < ?
+                ORDER BY m.created_at DESC
+                LIMIT ?
+            `, [dmId, before, limit]);
+            
+            // Reverse to maintain chronological order (oldest to newest)
+            messages = messages.reverse();
+        } else {
+            // Load latest messages (initial load) - get last N messages
+            messages = await db.all(`
+                SELECT * FROM (
+                    SELECT m.*, u.name as user_name, u.avatar_url 
+                    FROM messages m
+                    JOIN users u ON m.user_id = u.id
+                    WHERE m.dm_id = ?
+                    ORDER BY m.created_at DESC
+                    LIMIT ?
+                ) sub
+                ORDER BY created_at ASC
+            `, [dmId, limit]);
+        }
 
-        // Update read receipt for DM when fetching messages
-        if (messages.length > 0) {
+        // Update read receipt for DM when fetching messages (only for initial load, not lazy load)
+        if (messages.length > 0 && !before) {
             // Delete existing to avoid NULL constraint issues
             await db.run(`
                 DELETE FROM read_receipts 
@@ -116,7 +140,12 @@ router.get('/:dmId/messages', authMiddleware, async (req, res) => {
             `, [req.userId, dmId, messages[messages.length - 1].id]);
         }
 
-        res.json(messages);
+        // Return messages with pagination metadata
+        res.json({
+            messages: messages,
+            hasMore: messages.length === limit, // If we got full limit, there might be more
+            oldest: messages.length > 0 ? messages[0].id : null
+        });
     } catch (error) {
         console.error('Get DM Messages Error:', error);
         res.status(500).json({ error: error.message });
