@@ -223,7 +223,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
 
                 return [...prev, message];
             });
-            scrollToBottom();
+            // Smooth scroll for new messages arriving
+            scrollToBottom('smooth');
 
             // Browser Notification
             if (document.hidden && Number(message.user_id) !== Number(user?.id)) {
@@ -318,9 +319,13 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         };
     }, [socket]);
 
+    // Auto-scroll when messages change (smooth for new messages)
     useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+        if (messages.length > 0) {
+            // Use smooth scroll for messages updates
+            scrollToBottom('smooth');
+        }
+    }, [messages.length]); // Depend on length to avoid excessive scrolling
 
     // Fechar dropdown de data ao clicar fora
     useEffect(() => {
@@ -334,8 +339,14 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showDatePicker]);
 
-    const scrollToBottom = () => {
-        endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // 🔥 Scroll to bottom helper with behavior option
+    const scrollToBottom = (behavior = 'smooth') => {
+        if (endRef.current) {
+            endRef.current.scrollIntoView({ 
+                behavior: behavior,
+                block: 'end'
+            });
+        }
     };
 
     const fetchChannelMembers = async () => {
@@ -429,7 +440,13 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                 console.error('[CHAT] Error fetching messages:', error);
             }
         } finally {
-            if (!signal?.aborted) setIsLoadingMessages(false);
+            if (!signal?.aborted) {
+                setIsLoadingMessages(false);
+                // Scroll to bottom instantly when loading messages (not smooth)
+                setTimeout(() => {
+                    scrollToBottom('instant');
+                }, 150);
+            }
         }
     };
 
@@ -532,7 +549,11 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                     if (prev.some(m => m.id === sentMessage.id)) return prev;
                     return [...prev, sentMessage];
                 });
-                scrollToBottom();
+                
+                // Smooth scroll when sending message or file
+                setTimeout(() => {
+                    scrollToBottom('smooth');
+                }, 50);
 
                 // Clear input and uploaded file
                 setNewMessage('');
