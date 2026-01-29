@@ -11,7 +11,11 @@ const router = express.Router();
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('[UPLOAD] Created uploads directory:', uploadsDir);
 }
+
+console.log('[UPLOAD] Uploads directory configured at:', uploadsDir);
+console.log('[UPLOAD] Files will be saved to this path (mount Railway Volume here)');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({

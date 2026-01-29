@@ -613,7 +613,8 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                             display: 'inline-block',
                             borderRadius: 'var(--radius-sm)',
                             overflow: 'hidden',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            maxWidth: '100%'
                         }}
                         onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
                         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -622,11 +623,23 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                             src={fullUrl}
                             alt={msg.attachment_name}
                             style={{
+                                width: '100%',
                                 maxWidth: '400px',
                                 maxHeight: '300px',
                                 borderRadius: 'var(--radius-sm)',
                                 display: 'block',
                                 objectFit: 'cover'
+                            }}
+                            onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.parentElement.innerHTML = `
+                                    <div style="padding: 20px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444;">
+                                        <div style="font-size: 24px; margin-bottom: 8px;">⚠️</div>
+                                        <div style="font-size: 14px; font-weight: 500;">Imagem não disponível</div>
+                                        <div style="font-size: 12px; margin-top: 4px; opacity: 0.8;">${msg.attachment_name}</div>
+                                        <div style="font-size: 11px; margin-top: 8px; opacity: 0.6;">Arquivo perdido após reinicialização do servidor</div>
+                                    </div>
+                                `;
                             }}
                         />
                         <div style={{
@@ -655,13 +668,15 @@ export default function ChatWindow({ workspaceId, channelId, dmId }) {
                             display: 'inline-block',
                             borderRadius: 'var(--radius-sm)',
                             overflow: 'hidden',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            maxWidth: '100%'
                         }}
                         onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
                         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                     >
                         <video
                             style={{
+                                width: '100%',
                                 maxWidth: '400px',
                                 maxHeight: '300px',
                                 borderRadius: 'var(--radius-sm)',

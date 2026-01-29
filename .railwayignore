@@ -1,0 +1,55 @@
+# Railway Ignore File
+# Arquivos que não devem ser incluídos no deploy
+
+# Node modules
+node_modules/
+*/node_modules/
+
+# Build artifacts
+dist/
+build/
+.next/
+
+# Environment files (use Railway variables instead)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database (use Railway PostgreSQL)
+*.sqlite
+*.db
+
+# Uploads (use Railway Volume instead)
+# NÃO incluir uploads/ no .railwayignore se usar volumes
+# uploads/
+
+# Git
+.git/
+.gitignore
+
+# Documentation (não precisa no deploy)
+*.md
+!README.md
+
+# Test files
+test/
+*.test.js
+*.spec.js

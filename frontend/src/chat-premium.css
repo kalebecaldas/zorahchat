@@ -63,6 +63,9 @@
 .message-list {
     padding: 2rem 1.5rem !important;
     gap: 1.25rem !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Message Bubbles */
@@ -79,6 +82,8 @@
     align-items: flex-start !important;
     border-radius: 0 !important;
     min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 .message-item:hover {
@@ -279,6 +284,9 @@
     padding: 1.5rem 2rem !important;
     background: transparent !important;
     border-top: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
 }
 
 .chat-input-container {
@@ -290,6 +298,9 @@
     transition: all 0.2s ease !important;
     display: flex !important;
     flex-direction: column !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
 }
 
 .chat-input-container:focus-within {
@@ -305,6 +316,9 @@
     border-radius: 0 !important;
     padding: 10px 14px !important;
     min-height: 44px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
 }
 
 .chat-input:focus {
