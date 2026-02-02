@@ -2,6 +2,7 @@ const express = require('express');
 const { getDb } = require('../database');
 const authMiddleware = require('../middleware/auth');
 const NotificationService = require('../services/notificationService');
+const { sendNewMessageNotification } = require('../services/pushService');
 
 const router = express.Router();
 
@@ -236,6 +237,23 @@ router.post('/:dmId/messages', authMiddleware, async (req, res) => {
             if (recipientSocket) {
                 recipientSocket.emit('new-message', newMessage);
                 recipientSocket.emit('new-notification', notification);
+            } else {
+                // Recipient is offline - send push notification
+                console.log(`[PUSH] Sending push notification for DM to offline user ${recipientId}`);
+                
+                // Get workspace info for push notification
+                const workspace = await db.get('SELECT name FROM workspaces WHERE id = ?', [dm.workspace_id]);
+                
+                sendNewMessageNotification(recipientId, {
+                    senderName: newMessage.user_name,
+                    messageText: content || '📎 Arquivo enviado',
+                    workspaceName: workspace.name,
+                    isDirect: true,
+                    dmId: dmId,
+                    workspaceId: dm.workspace_id
+                }).catch(err => {
+                    console.error(`[PUSH] Failed to send DM push to user ${recipientId}:`, err.message);
+                });
             }
 
             // Also emit to rooms as backup

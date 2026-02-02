@@ -14,6 +14,7 @@ const directMessageRoutes = require('./routes/directMessages');
 const userRoutes = require('./routes/users');
 const notificationRoutes = require('./routes/notifications');
 const adminRoutes = require('./routes/admin');
+const pushRoutes = require('./routes/push');
 
 // Load environment variables
 require('dotenv').config();
@@ -251,6 +252,7 @@ app.use('/api/dm', directMessageRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/push', pushRoutes);
 
 // Healthcheck endpoint for Railway
 app.get('/health', (req, res) => {

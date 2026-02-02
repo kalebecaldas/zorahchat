@@ -3,6 +3,7 @@ const { getDb } = require('../database');
 const authMiddleware = require('../middleware/auth');
 const MentionService = require('../services/mentionService');
 const NotificationService = require('../services/notificationService');
+const { sendNewMessageNotification, sendMentionNotification } = require('../services/pushService');
 
 const router = express.Router();
 
@@ -323,6 +324,37 @@ router.post('/', authMiddleware, async (req, res) => {
             }
 
             console.log(`[MESSAGES] Direct send complete: ${sentCount}/${workspaceSockets.length} messages, ${notificationCount}/${notifications.length} notifications`);
+
+            // Send push notifications to offline users or users not in the channel
+            const connectedUserIds = workspaceSockets.map(s => s.userId);
+            const offlineMembers = workspaceMemberIds.filter(id => 
+                id !== req.userId && !connectedUserIds.includes(id)
+            );
+
+            if (offlineMembers.length > 0) {
+                console.log(`[PUSH] Sending push notifications to ${offlineMembers.length} offline/disconnected users:`, offlineMembers);
+                
+                // Get workspace info for push notification
+                const workspace = await db.get('SELECT name FROM workspaces WHERE id = ?', [channel.workspace_id]);
+                const channelInfo = await db.get('SELECT name FROM channels WHERE id = ?', [channelId]);
+                
+                const pushPromises = offlineMembers.map(userId => 
+                    sendNewMessageNotification(userId, {
+                        senderName: message.user_name,
+                        messageText: content || '📎 Arquivo enviado',
+                        channelName: channelInfo.name,
+                        workspaceName: workspace.name,
+                        isDirect: false,
+                        channelId: channelId,
+                        workspaceId: channel.workspace_id
+                    }).catch(err => {
+                        console.error(`[PUSH] Failed to send push to user ${userId}:`, err.message);
+                    })
+                );
+                
+                await Promise.all(pushPromises);
+                console.log(`[PUSH] Push notifications sent to offline users`);
+            }
 
             // Also emit to rooms as backup (in case someone joins between message send and room join)
             io.to(`channel-${channelId}`).emit('new-message', message);

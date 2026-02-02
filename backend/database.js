@@ -299,6 +299,22 @@ async function initializeDatabase() {
     await safeRun('CREATE INDEX IF NOT EXISTS idx_audit_admin ON admin_audit_log(admin_user_id)');
     await safeRun('CREATE INDEX IF NOT EXISTS idx_audit_target ON admin_audit_log(target_type, target_id)');
 
+    // Push notifications subscriptions
+    await safeRun(`
+        CREATE TABLE IF NOT EXISTS push_subscriptions (
+            id ${PK_TYPE},
+            user_id INTEGER NOT NULL,
+            endpoint TEXT NOT NULL,
+            subscription TEXT NOT NULL,
+            created_at ${TIMESTAMP_TYPE},
+            updated_at ${TIMESTAMP_TYPE},
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+    `);
+
+    await safeRun('CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id)');
+    await safeRun('CREATE INDEX IF NOT EXISTS idx_push_endpoint ON push_subscriptions(endpoint)');
+
     console.log('Database initialized.');
     await seedDatabase();
 }
