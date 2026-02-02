@@ -1,0 +1,88 @@
+:{$PORT} {
+	root * dist
+	encode gzip
+
+	# Servir arquivos estáticos com MIME types corretos
+	@js {
+		path *.js *.mjs
+		file
+	}
+	header @js {
+		Content-Type "application/javascript; charset=utf-8"
+		Cache-Control "public, max-age=31536000, immutable"
+	}
+
+	@css {
+		path *.css
+		file
+	}
+	header @css {
+		Content-Type "text/css; charset=utf-8"
+		Cache-Control "public, max-age=31536000, immutable"
+	}
+
+	@json {
+		path *.json
+		file
+	}
+	header @json {
+		Content-Type "application/json; charset=utf-8"
+	}
+
+	@wasm {
+		path *.wasm
+		file
+	}
+	header @wasm {
+		Content-Type "application/wasm"
+	}
+
+	@images {
+		path *.png *.jpg *.jpeg *.gif *.svg *.ico *.webp
+		file
+	}
+	header @images {
+		Cache-Control "public, max-age=31536000, immutable"
+	}
+
+	# Service Worker - sem cache
+	@sw {
+		path /sw.js
+		file
+	}
+	header @sw {
+		Content-Type "application/javascript; charset=utf-8"
+		Cache-Control "no-cache, no-store, must-revalidate"
+	}
+
+	# Manifest
+	@manifest {
+		path /manifest.json
+		file
+	}
+	header @manifest {
+		Content-Type "application/json; charset=utf-8"
+		Cache-Control "public, max-age=3600"
+	}
+
+	# Tentar servir arquivo, depois pasta, depois index.html (SPA)
+	try_files {path} {path}/ /index.html
+
+	# Servir arquivos
+	file_server
+
+	# Headers de segurança
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+
+	# Log
+	log {
+		output stdout
+		format console
+		level INFO
+	}
+}
