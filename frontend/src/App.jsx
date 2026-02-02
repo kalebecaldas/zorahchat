@@ -8,6 +8,7 @@ import Settings from './pages/Settings';
 import WorkspaceManagement from './pages/WorkspaceManagement';
 import Chat from './pages/Chat';
 import Admin from './pages/Admin';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -31,6 +32,7 @@ function App() {
     <Router>
       <AuthProvider>
         <SocketProvider>
+          <PWAInstallPrompt />
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
