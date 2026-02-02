@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && chmod +x verify-build.sh && ./verify-build.sh",
     "start": "serve -s dist -l ${PORT:-4173}",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify": "./verify-build.sh"
   },
   "dependencies": {
     "react": "^19.2.0",
