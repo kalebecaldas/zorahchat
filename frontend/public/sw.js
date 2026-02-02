@@ -46,6 +46,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // #region agent log - H9: Skip non-GET requests and API calls
   // Skip cross-origin requests
   if (url.origin !== location.origin) {
     return;
@@ -56,27 +57,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // API requests - network first
-  if (url.pathname.startsWith('/api')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Clone and cache successful responses
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(RUNTIME_CACHE).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Fallback to cache if network fails
-          return caches.match(request);
-        })
-    );
+  // Skip ALL API requests (let them go directly to network)
+  if (url.pathname.startsWith('/api') || url.pathname.startsWith('/uploads')) {
     return;
   }
+
+  // Only cache GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+  // #endregion
 
   // Static assets - cache first
   event.respondWith(
