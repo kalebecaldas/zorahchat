@@ -1,4 +1,25 @@
 :{$PORT} {
+	# Proxy para API backend
+	@api {
+		path /api/*
+	}
+	reverse_proxy @api {$BACKEND_URL:localhost:3001}
+
+	# Proxy para uploads
+	@uploads {
+		path /uploads/*
+	}
+	reverse_proxy @uploads {$BACKEND_URL:localhost:3001}
+
+	# Proxy para Socket.IO
+	@socket {
+		path /socket.io/*
+	}
+	reverse_proxy @socket {$BACKEND_URL:localhost:3001} {
+		header_up Upgrade {http.request.header.Upgrade}
+		header_up Connection {http.request.header.Connection}
+	}
+
 	root * dist
 	encode gzip
 
