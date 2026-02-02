@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const { getDb } = require('../database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey_change_in_production';
-const MASTER_EMAIL = 'kalebecaldas@iaamazonas.com.br';
+const MASTER_EMAIL = 'kalebe.caldas@hotmail.com';
 
 /**
  * Middleware to verify master/super admin access

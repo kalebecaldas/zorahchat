@@ -1,0 +1,190 @@
+═══════════════════════════════════════════════════════════════
+🚂 RESET DO BANCO DE DADOS NO RAILWAY - INSTRUÇÕES
+═══════════════════════════════════════════════════════════════
+
+⚠️  ATENÇÃO: Esta ação é IRREVERSÍVEL!
+    Todos os dados serão PERMANENTEMENTE deletados!
+
+───────────────────────────────────────────────────────────────
+📋 PRÉ-REQUISITOS
+───────────────────────────────────────────────────────────────
+
+✅ Railway CLI instalado (já instalado!)
+   Local: /opt/homebrew/bin/railway
+
+✅ Scripts criados:
+   • backend/scripts/resetRailway.js
+   • backend/scripts/checkRailway.js
+
+───────────────────────────────────────────────────────────────
+🎯 PASSO A PASSO COMPLETO
+───────────────────────────────────────────────────────────────
+
+1️⃣  FAZER LOGIN NO RAILWAY
+   
+   $ railway login
+   
+   → Seu navegador abrirá
+   → Faça login com sua conta Railway
+   → Retorne ao terminal
+
+2️⃣  LINKAR AO PROJETO
+   
+   $ cd "/Users/kalebecaldas/Downloads/ZORAH CHAT/backend"
+   $ railway link
+   
+   → Selecione seu projeto (Zorah Chat)
+   → Pressione Enter
+
+3️⃣  VERIFICAR CONEXÃO (Opcional mas recomendado)
+   
+   $ railway run node scripts/checkRailway.js
+   
+   → Mostra estatísticas do banco atual
+   → Confirme que é o banco correto
+
+4️⃣  EXECUTAR RESET
+   
+   $ railway run node scripts/resetRailway.js
+   
+   → Aguarda 5 segundos
+   → Deleta TODOS os dados
+   → Cria usuário master
+   → Mostra confirmação
+
+5️⃣  VERIFICAR RESULTADO
+   
+   $ railway run node scripts/checkRailway.js
+   
+   → Deve mostrar:
+     ✓ Usuários: 1 (master)
+     ✓ Workspaces: 0
+     ✓ Mensagens: 0
+
+6️⃣  TESTAR LOGIN
+   
+   → Acesse: https://[sua-app].railway.app/login
+   → Email: kalebe.caldas@hotmail.com
+   → Senha: mxskqgltne
+   → Deve logar com sucesso!
+
+───────────────────────────────────────────────────────────────
+⚡ COMANDO ÚNICO (Após linkar)
+───────────────────────────────────────────────────────────────
+
+$ cd backend && railway run node scripts/resetRailway.js
+
+───────────────────────────────────────────────────────────────
+🔍 COMANDOS ÚTEIS
+───────────────────────────────────────────────────────────────
+
+# Ver status do projeto
+$ railway status
+
+# Ver variáveis de ambiente
+$ railway variables
+
+# Conectar ao PostgreSQL
+$ railway connect postgres
+
+# Ver logs em tempo real
+$ railway logs
+
+# Re-deploy
+$ railway up
+
+───────────────────────────────────────────────────────────────
+🐛 TROUBLESHOOTING
+───────────────────────────────────────────────────────────────
+
+❌ Erro: "not logged in"
+   → Executar: railway login
+
+❌ Erro: "no project linked"
+   → Executar: railway link
+   → Selecionar projeto Zorah Chat
+
+❌ Erro: "Cannot find module"
+   → Executar: railway run npm install
+
+❌ Erro: "Database connection failed"
+   → Verificar: railway variables
+   → Confirmar DATABASE_URL existe
+
+❌ Script não deleta tudo
+   → Conectar ao banco: railway connect postgres
+   → Executar SQL direto (ver RESET_RAILWAY_GUIA.md)
+
+───────────────────────────────────────────────────────────────
+📊 O QUE SERÁ DELETADO
+───────────────────────────────────────────────────────────────
+
+❌ TODOS os usuários (exceto master)
+❌ TODOS os workspaces
+❌ TODOS os canais
+❌ TODAS as mensagens
+❌ TODAS as mensagens diretas
+❌ TODAS as notificações
+❌ TODOS os anexos (referências)
+❌ TODOS os membros
+❌ TODAS as permissões
+
+✅ Usuário master será criado:
+   📧 kalebe.caldas@hotmail.com
+   🔑 mxskqgltne
+
+───────────────────────────────────────────────────────────────
+⏱️  TEMPO ESPERADO
+───────────────────────────────────────────────────────────────
+
+• Conexão: ~2s
+• Aguardar: 5s
+• Deletar: ~10s
+• Criar master: ~1s
+
+TOTAL: ~18 segundos
+
+───────────────────────────────────────────────────────────────
+📚 DOCUMENTAÇÃO COMPLETA
+───────────────────────────────────────────────────────────────
+
+• RESET_RAILWAY_RAPIDO.md   → Guia rápido (1 página)
+• RESET_RAILWAY_GUIA.md     → Guia completo (todos os métodos)
+• RESET_BANCO_COMPLETO.md   → Documentação do reset local
+
+───────────────────────────────────────────────────────────────
+✅ CHECKLIST FINAL
+───────────────────────────────────────────────────────────────
+
+Antes de executar:
+[ ] Railway CLI instalado e logado
+[ ] Projeto linkado (railway status funciona)
+[ ] Testado localmente primeiro
+[ ] Usuários avisados
+[ ] Horário de baixo uso
+[ ] Backups verificados (se necessário)
+
+Durante:
+[ ] Script executando sem erros
+[ ] Tabelas sendo deletadas
+[ ] Master user criado
+[ ] Confirmação de sucesso
+
+Depois:
+[ ] Login como master funcionando
+[ ] Admin panel acessível (/admin)
+[ ] Criar workspace funcionando
+[ ] Convidar usuários funcionando
+
+═══════════════════════════════════════════════════════════════
+🚀 PRONTO PARA EXECUTAR!
+═══════════════════════════════════════════════════════════════
+
+Execute no terminal:
+
+    cd backend
+    railway login               # Se ainda não logou
+    railway link                # Se ainda não linkou
+    railway run node scripts/resetRailway.js
+
+═══════════════════════════════════════════════════════════════

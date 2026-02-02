@@ -14,13 +14,13 @@ export default function Admin() {
 
     // Verify master access
     useEffect(() => {
-        if (user && user.email !== 'kalebecaldas@iaamazonas.com.br') {
+        if (user && user.email !== 'kalebe.caldas@hotmail.com') {
             // Not master user, redirect to regular app
             navigate('/client');
         }
     }, [user, navigate]);
 
-    if (!user || user.email !== 'kalebecaldas@iaamazonas.com.br') {
+    if (!user || user.email !== 'kalebe.caldas@hotmail.com') {
         return (
             <div style={{
                 display: 'flex',
