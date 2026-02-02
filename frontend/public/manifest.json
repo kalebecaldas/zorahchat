@@ -7,6 +7,8 @@
   "background_color": "#1a1a2e",
   "theme_color": "#6366f1",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "display_override": ["standalone", "fullscreen"],
   "icons": [
     {
       "src": "/icon-192.png",
