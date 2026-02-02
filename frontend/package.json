@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && chmod +x verify-build.sh && ./verify-build.sh",
-    "start": "serve -s dist -l ${PORT:-4173}",
+    "start": "serve -s dist -l ${PORT:-4173} --no-clipboard",
     "lint": "eslint .",
     "preview": "vite preview",
     "verify": "./verify-build.sh"

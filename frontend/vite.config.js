@@ -11,11 +11,16 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       assetsDir: 'assets',
       sourcemap: false,
+      // #region agent log - H8: Force cache busting with timestamp
       rollupOptions: {
         output: {
-          manualChunks: undefined
+          manualChunks: undefined,
+          entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+          chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+          assetFileNames: `assets/[name]-[hash]-${Date.now()}.[ext]`
         }
       }
+      // #endregion
     },
     publicDir: 'public',
     server: {
