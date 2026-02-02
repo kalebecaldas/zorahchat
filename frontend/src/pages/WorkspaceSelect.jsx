@@ -267,6 +267,45 @@ export default function WorkspaceSelect() {
                                 >
                                     <span>⚙️</span> Configurações
                                 </button>
+                                
+                                {/* Master Admin Panel - Only visible to master user */}
+                                {user?.email === 'kalebe.caldas@hotmail.com' && (
+                                    <>
+                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.5rem 0' }} />
+                                        <button
+                                            onClick={() => {
+                                                setShowUserMenu(false);
+                                                navigate('/admin');
+                                            }}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem 1rem',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                color: '#fbbf24',
+                                                textAlign: 'left',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.75rem',
+                                                fontSize: '0.95rem',
+                                                fontWeight: '600'
+                                            }}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.background = 'rgba(251, 191, 36, 0.1)';
+                                                e.currentTarget.style.color = '#fcd34d';
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.background = 'transparent';
+                                                e.currentTarget.style.color = '#fbbf24';
+                                            }}
+                                        >
+                                            <span>👑</span> Painel Master
+                                        </button>
+                                    </>
+                                )}
+                                
                                 <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.5rem 0' }} />
                                 <button
                                     onClick={() => {
